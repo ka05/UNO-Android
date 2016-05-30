@@ -35,8 +35,8 @@ public class UNOActivity extends AppCompatActivity implements View.OnClickListen
             case R.id.btnLogin:
                 Log.d("btnLogin click", "t");
                 JsonObject credentials =  new JsonObject();
-                credentials.add("username", new JsonPrimitive("test"));
-                credentials.add("password", new JsonPrimitive("test"));
+                credentials.add("username", new JsonPrimitive("clayh"));
+                credentials.add("password", new JsonPrimitive("password"));
 
                 SocketService.get(this).attemptLogin(credentials);
                 break;

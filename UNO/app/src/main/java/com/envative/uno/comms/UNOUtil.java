@@ -26,4 +26,7 @@ public class UNOUtil {
         return instance;
     }
 
+    public void setLoggedIn() {
+
+    }
 }

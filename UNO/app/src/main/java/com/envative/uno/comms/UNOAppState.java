@@ -18,7 +18,7 @@ public class UNOAppState {
         return instance;
     }
 
-    public static final String devURL = "http://uno-server.herokuapp.com";
+    public static final String devURL = "http://192.168.2.2:3001";// "localhost:3001";
     public static final String serviceURL = "http://uno-server.herokuapp.com";
 
     public static ArrayList<ChatMsg> chatMsgArray = new ArrayList<>();
@@ -32,7 +32,8 @@ public class UNOAppState {
     public static String preGameLobbyMsg= "";
     public static UNOGame currGame = new UNOGame();
     public static JsonObject currGameJSON = null;
-    public static JsonObject tempGameJSON = null;
+    public static UNOGame tempGameJSON;
+    public static User currUser;
 
     public static boolean inGameOrGameLobby = false;
     public static boolean currUserIsChallenger = false;
