@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/button_material_dark"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp">
+
+        <com.envative.emoba.widgets.PercentView
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:id="@+id/userPercentView"
+
+            app:centerBackground="@drawable/profile_img"
+            app:pieceWidth="20"
+            app:backgroundCircleWidth="15"
+            app:displayNumberColor="@color/white"
+            app:displayLabelColor="@color/colorLightGray"
+
+            android:layout_gravity="center_horizontal" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/button_material_light">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Username"
+                android:id="@+id/textView2"
+                android:layout_weight="0.5"
+                android:layout_margin="10dp"
+                android:textSize="20sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="username value"
+                android:id="@+id/txtUsername"
+                android:layout_weight="0.5"
+                android:layout_margin="10dp"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/colorMedGray"/>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Email"
+                android:id="@+id/textView3"
+                android:layout_weight="0.5"
+                android:layout_margin="10dp"
+                android:textSize="20sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="email value"
+                android:id="@+id/txtEmail"
+                android:layout_weight="0.5"
+                android:layout_margin="10dp"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/colorMedGray"/>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Win Count"
+                android:id="@+id/textView5"
+                android:layout_weight="0.5"
+                android:layout_margin="10dp"
+                android:textSize="20sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="win count value"
+                android:id="@+id/txtWinCount"
+                android:layout_weight="0.5"
+                android:layout_margin="10dp"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/colorMedGray"/>
+    </LinearLayout>
+</LinearLayout>

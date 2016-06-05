@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">UNO</string>
+    <string name="error_field_required">Field Required</string>
+    <string name="signup">Signup</string>
 </resources>

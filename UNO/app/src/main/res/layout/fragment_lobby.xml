@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!--import Chat fragment-->
+    <!--import Sent Challenges fragment-->
+    <!--import Received Challenges fragment-->
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:id="@+id/chatFragmentContainer"></FrameLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/chatFragmentContainer"
+        android:layout_above="@+id/btnSendChallenge">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/chatFragmentContainer"
+            android:layout_above="@+id/btnSendChallenge"
+            android:id="@+id/sentChallengesContainer"
+            android:layout_weight="0.5"></FrameLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/chatFragmentContainer"
+            android:layout_above="@+id/btnSendChallenge"
+            android:id="@+id/receivedChallengesContainer"
+            android:layout_weight="0.5" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SEND CHALLENGE"
+        android:id="@+id/btnSendChallenge"
+        android:layout_alignParentBottom="true"
+        android:gravity="center_vertical|center_horizontal"
+        android:padding="10dp"
+        android:background="@color/challengeOrange"
+        android:textColor="@color/white"
+        android:textSize="20sp" />
+</RelativeLayout>

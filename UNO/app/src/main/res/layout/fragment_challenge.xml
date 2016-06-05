@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Challenges Header"
+        android:id="@+id/txtChallengesHeader"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:layout_margin="10dp"
+        android:textSize="20sp" />
+
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/lvChallenges"
+        android:layout_gravity="center_horizontal"
+        android:layout_below="@+id/txtChallengesHeader" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No challenges."
+        android:background="@drawable/progress_bg"
+        android:id="@+id/emptyListView"
+        android:padding="10dp"
+        android:gravity="center_vertical|center_horizontal"
+        android:textSize="17sp"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_below="@+id/txtChallengesHeader"
+        android:layout_centerHorizontal="true" />
+</RelativeLayout>

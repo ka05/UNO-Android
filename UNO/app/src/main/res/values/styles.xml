@@ -8,4 +8,36 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="UNO.PrimaryButton" parent="@android:style/Widget.Button">
+        <item name="android:gravity">center_vertical|center_horizontal</item>
+        <item name="android:textColor">#FFFFFFFF</item>
+        <item name="android:shadowColor">#FF000000</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">-1</item>
+        <item name="android:shadowRadius">3</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/uno_button</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <style name="UNO.Input" parent="@android:style/Widget.EditText">
+        <item name="android:shadowRadius">3</item>
+        <item name="android:background">@drawable/uno_input</item>
+        <item name="android:padding">10dp</item>
+    </style>
+
+    <style name="CustomDialogTheme">
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowNoTitle">false</item>
+        <item name="android:windowAnimationStyle">@style/BounceInAnimation.Window</item>
+
+    </style>
+
+    <style name="BounceInAnimation.Window" parent="@android:style/Animation.Activity">
+        <item name="android:windowEnterAnimation">@anim/anim_modal_bounce_from_top</item>
+        <item name="android:windowExitAnimation">@anim/anim_modal_to_bottom</item>
+    </style>
+
 </resources>

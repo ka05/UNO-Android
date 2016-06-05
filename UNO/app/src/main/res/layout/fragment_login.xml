@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/colorPrimaryDark">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="20dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/lcLogo"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/uno_bg"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="0dp"
+            android:layout_marginLeft="0dp"
+            android:layout_marginBottom="40dp" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/usernameEditText"
+            android:layout_gravity="center_horizontal"
+            android:hint="Username"
+            style="@style/UNO.Input"
+            android:imeOptions="actionNext"
+            android:layout_marginBottom="15dp"
+            android:singleLine="true"
+            android:textColor="#000000" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:ems="10"
+            android:id="@+id/passwordEditText"
+            android:layout_gravity="center_horizontal"
+            android:hint="Password"
+            android:imeOptions="actionDone"
+            style="@style/UNO.Input"
+            android:singleLine="true"
+            android:layout_marginBottom="15dp"
+            android:textColor="#000000" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="LOGIN"
+            android:id="@+id/loginBtn"
+            android:textAllCaps="false"
+            style="@style/UNO.PrimaryButton"
+            android:layout_marginBottom="15dp"
+            android:textSize="17sp" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SIGNUP"
+            android:id="@+id/btnSignup"
+            android:layout_gravity="center_horizontal"
+            android:background="#00ffffff"
+            android:textAllCaps="false"
+            android:textColor="@color/btnPrimary"
+            android:textSize="17sp" />
+
+    </LinearLayout>
+
+</FrameLayout>

@@ -18,14 +18,15 @@ public class UNOAppState {
         return instance;
     }
 
-    public static final String devURL = "http://192.168.2.2:3001";// "localhost:3001";
+//    public static final String devURL = "http://192.168.2.2:3001";// "localhost:3001";
+    public static final String devURL = "http://192.168.1.135:3001";// "localhost:3001";
     public static final String serviceURL = "http://uno-server.herokuapp.com";
 
     public static ArrayList<ChatMsg> chatMsgArray = new ArrayList<>();
     public static ArrayList<User> activeUsers = new ArrayList<>();
     public static ArrayList<Challenge> sentChallenges = new ArrayList<>();
     public static ArrayList<Challenge> receivedChallenges = new ArrayList<>();
-    public static ArrayList<String> usersToChallenge = new ArrayList<>();
+//    public static ArrayList<String> usersToChallenge = new ArrayList<>();
     public static boolean loggedIn = false;
     public static String currChallengeId= "";
     public static String currGameId= "";
@@ -39,4 +40,9 @@ public class UNOAppState {
     public static boolean currUserIsChallenger = false;
     public static boolean canSayUno = false;
 
+
+    public void setLoggedOut() {
+        // de initialize everything
+
+    }
 }

@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorPrimary">#e45016</color>
+    <color name="colorPrimaryDark">#8b3e15</color>
+    <color name="colorAccent">#e45016</color>
+    <color name="btnPrimary">#ec9513</color>
+    <color name="challengeOrange">#ec9513</color>
+
+
+    <color name="colorCardBlue">#5962ac</color>
+    <color name="colorCardRed">#f15a59</color>
+    <color name="colorCardGreen">#55aa55</color>
+    <color name="colorCardYellow">#fbaa1c</color>
+
+    <color name="nav_item_bg_selected">#8b3e15</color>
+    <color name="nav_item_bg">#e45016</color>
+
+    <color name="dkBtnBackground">#55000000</color>
+    <color name="black">#000000</color>
 </resources>
