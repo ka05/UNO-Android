@@ -45,7 +45,7 @@ public class ChallengeFragment extends EMBaseFragment {
         View v = inflater.inflate(R.layout.fragment_challenge, container, false);
         findViews(v);
 
-        SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.Chat);
+        SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.Challenges);
         return v;
     }
 

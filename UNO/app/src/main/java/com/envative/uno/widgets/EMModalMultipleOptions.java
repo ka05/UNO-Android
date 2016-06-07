@@ -7,5 +7,8 @@ import com.envative.emoba.widgets.EMModal;
  */
 public class EMModalMultipleOptions extends EMModal {
 
+    // Need modal with multiple full width buttons, message, and title
+
+    // Need modal for wild card color choice
 
 }

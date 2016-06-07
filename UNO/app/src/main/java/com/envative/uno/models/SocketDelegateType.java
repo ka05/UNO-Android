@@ -10,5 +10,5 @@ public enum SocketDelegateType {
     PreGameLobby,
     Chat,
     ChallengeModal,
-    Game
+    Challenges, GamePlayers, PlayerHand, Game
 }
