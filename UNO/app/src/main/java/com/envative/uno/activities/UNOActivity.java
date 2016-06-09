@@ -34,7 +34,7 @@ public class UNOActivity extends EMNavigationDrawerActivity {
         setNavigationViewMenu(R.menu.activity_uno_drawer);
         setNavigationViewItemBackgroundColor(R.color.drawer_item);
 //        activityIndicatorType = EMActivityWithIndicator.ActivityIndicatorType.Dots;
-        EMModal.setModalAttributes(-1, 10, R.color.colorPrimary, R.color.colorPrimaryDark, R.color.colorPrimaryDark, R.color.white);
+        EMModal.setModalAttributes(EMModal.RoundedModal.EMModalAnimType.GlideAndGrow, 10, R.color.colorPrimary, R.color.colorPrimaryDark, R.color.colorPrimaryDark, R.color.white);
 
         SocketService.get(this); // initialize socket service
         requestFragmentChange(new LobbyFragment(), "lobby");
