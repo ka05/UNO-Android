@@ -22,8 +22,7 @@ public class UNOAppState {
         return instance;
     }
 
-//    public static final String devURL = "http://192.168.2.2:3001";// "localhost:3001";
-    public static final String devURL = "http://192.168.1.135:3001";// "localhost:3001";
+    public static final String devURL = "http://192.168.2.2:3001";// "localhost:3001";
     public static final String serviceURL = "http://uno-server.herokuapp.com";
 
     public static ArrayList<ChatMsg> chatMsgArray = new ArrayList<>();

@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.envative.emoba.fragments.EMBaseFragment;
 import com.envative.uno.R;
 import com.envative.uno.comms.SocketService;
+import com.envative.uno.models.Challenge;
 import com.envative.uno.models.SocketDelegateType;
 
 /**
@@ -49,8 +50,10 @@ public class LobbyFragment extends EMBaseFragment implements View.OnClickListene
 
         chatFragment = new ChatFragment();
         sentChallengesFragment = new ChallengeFragment();
+        sentChallengesFragment.setLobbyDelegate(this);
         sentChallengesFragment.setChallengeType(ChallengeFragment.ChallengeType.Sent);
         receivedChallengesFragment = new ChallengeFragment();
+        receivedChallengesFragment.setLobbyDelegate(this);
         receivedChallengesFragment.setChallengeType(ChallengeFragment.ChallengeType.Received);
 
         populateFragmentContainer(chatFragment, R.id.chatFragmentContainer);
@@ -85,6 +88,12 @@ public class LobbyFragment extends EMBaseFragment implements View.OnClickListene
         if (fragment != null) {
             ft.replace(containerId, fragment).commit();
         }
+    }
+
+    public void showPregameLobby(Challenge challenge){
+        PreGameLobbyFragment preGameLobbyFragment = new PreGameLobbyFragment();
+        preGameLobbyFragment.setChallenge(challenge);
+        delegate.requestFragmentChange(preGameLobbyFragment, "pregame-lobby", true);
     }
 
     public ChatFragment getChatFragment() {

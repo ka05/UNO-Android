@@ -5,6 +5,7 @@
     <color name="colorAccent">#e45016</color>
     <color name="btnPrimary">#ec9513</color>
     <color name="challengeOrange">#ec9513</color>
+    <color name="white_transparent">#CCffffff</color>
 
 
     <color name="colorCardBlue">#5962ac</color>

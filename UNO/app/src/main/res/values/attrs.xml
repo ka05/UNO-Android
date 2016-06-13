@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--For Percent View-->
+    <declare-styleable name="PercentView">
+
+        <attr name="centerBackground" format="reference"/>
+        <attr name="centerBackgroundColor" format="color"/>
+
+        <!--colors for pieces of percent view -->
+        <attr name="backgroundCircleWidth" format="integer"/>
+        <attr name="pieceWidth" format="integer"/>
+
+        <!--colors for labels-->
+        <attr name="displayNumberColor" format="color"/>
+        <attr name="displayLabelColor" format="color"/>
+
+
+        <!--text in center of circle-->
+        <attr name="displayNumber" format="string"/>
+        <attr name="displayLabel" format="string"/>
+    </declare-styleable>
+
+</resources>

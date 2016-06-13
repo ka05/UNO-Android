@@ -3,12 +3,13 @@
     android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <View
+    <ImageView
         android:layout_width="25dp"
         android:layout_height="25dp"
         android:background="@drawable/circle_view"
         android:layout_margin="10dp"
-        android:id="@+id/inGameIndicator" />
+        android:id="@+id/inGameIndicator"
+        android:contentDescription="In a game" />
 
     <TextView
         android:layout_width="match_parent"

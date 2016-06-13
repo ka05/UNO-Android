@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -102,4 +103,18 @@ public class UNOUtil {
         return usernames;
     }
 
+    public void savePhoto(File photoFile) {
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("profilePhoto", photoFile.getPath());
+        editor.apply();
+    }
+
+    public String getProfilePhoto(){
+        String userInfoJsonString = sharedPref.getString("profilePhoto", null);
+        if(userInfoJsonString != null){
+            return userInfoJsonString;
+        }else{
+            return "";
+        }
+    }
 }

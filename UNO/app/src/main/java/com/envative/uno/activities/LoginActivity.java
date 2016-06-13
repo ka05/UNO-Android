@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.envative.emoba.activities.EMActivityWithIndicator;
+import com.envative.emoba.fragments.ActivityIndicatorFragment;
 import com.envative.emoba.widgets.EMModal;
 import com.envative.uno.R;
 import com.envative.uno.comms.SocketService;
@@ -38,8 +39,8 @@ public class LoginActivity extends EMActivityWithIndicator {
 
     private void initComponents() {
         getFragmentContainer().setBackgroundColor(getResources().getColor( R.color.colorPrimaryDark ));
-        activityIndicatorType = ActivityIndicatorType.Dots;
-        EMModal.setModalAttributes(-1, 10, R.color.colorPrimary, R.color.colorPrimaryDark, R.color.colorPrimaryDark, R.color.white);
+        setActivityIndicatorType(ActivityIndicatorFragment.ActivityIndicatorType.Dots);
+        EMModal.setModalAttributes(EMModal.RoundedModal.EMModalAnimType.GlideAndGrow, 10, R.color.colorPrimary, R.color.colorPrimaryDark, R.color.colorPrimaryDark, R.color.white);
     }
 
     @Override

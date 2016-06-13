@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 public class ChallengeModalFragment extends EMBaseFragment implements View.OnClickListener {
 
     private View inGameLegendCircleView;
+    private View availableLegendCircleView;
     private ListView lvOnlinePlayers;
     private Button btnSendChallenge;
     private Button btnCancel;
@@ -54,6 +56,8 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
     private void findViews(View v) {
         inGameLegendCircleView = v.findViewById(R.id.inGameLegendCircleView);
         EMDrawingUtils.setDrawableLayerColor(inGameLegendCircleView.getBackground(), R.id.circle, getResources().getColor( R.color.challengeOrange) );
+        availableLegendCircleView = v.findViewById(R.id.availableLegendCircleView);
+        EMDrawingUtils.setDrawableLayerColor(availableLegendCircleView.getBackground(), R.id.circle, getResources().getColor( R.color.colorCardGreen) );
 
         inGameLegendCircleView = (View)v.findViewById(R.id.inGameLegendCircleView);
         btnSendChallenge = (Button)v.findViewById(R.id.btnSendChallenge);
@@ -80,6 +84,7 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
                 if(usersToChallenge.size() > 0){
                     ((ActivityWithIndicator)getActivity()).showActivityIndicator();
                     SocketService.get(getActivity()).sendChallenge(usersToChallenge);
+                    getActivity().getFragmentManager().popBackStack();
                 }else{
                     EMModal.showModal(getActivity(), EMModal.ModalType.Warning, "Warning!", "Please select at least one person to challenge");
                 }
@@ -114,7 +119,7 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
 
                 holder = new UserHolder();
                 holder.username = (TextView)row.findViewById(R.id.txtUsername);
-                holder.inAGameIndicator = row.findViewById(R.id.inGameIndicator);
+                holder.inAGameIndicator = (ImageView)row.findViewById(R.id.inGameIndicator);
                 holder.selected = (CheckBox)row.findViewById(R.id.cbSelectedItem);
 
                 row.setTag(holder);
@@ -126,8 +131,13 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
 
             // TODO: handle formatting for these
             holder.username.setText(user.username);
-            EMDrawingUtils.setDrawableLayerColor(holder.inAGameIndicator.getBackground(), R.id.circle, getResources().getColor(R.color.challengeOrange));
-            holder.inAGameIndicator.setVisibility(user.inAGame ? View.VISIBLE : View.INVISIBLE);
+
+            if(user.inAGame){
+                EMDrawingUtils.setDrawableLayerColor(holder.inAGameIndicator, R.id.circle, getResources().getColor(R.color.challengeOrange));
+            }else{
+                EMDrawingUtils.setDrawableLayerColor(holder.inAGameIndicator, R.id.circle, getResources().getColor(R.color.colorCardGreen));
+            }
+//            holder.inAGameIndicator.setVisibility(user.inAGame ? View.VISIBLE : View.INVISIBLE);
             holder.selected.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -146,7 +156,7 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
 
         class UserHolder {
             TextView username;
-            View inAGameIndicator;
+            ImageView inAGameIndicator;
             CheckBox selected;
         }
     }

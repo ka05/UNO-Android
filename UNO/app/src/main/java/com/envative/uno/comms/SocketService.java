@@ -8,10 +8,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.envative.emoba.delegates.ActivityWithIndicator;
-import com.envative.emoba.delegates.Callback;
 import com.envative.emoba.widgets.EMModal;
 import com.envative.uno.R;
 import com.envative.uno.activities.LoginActivity;
+import com.envative.uno.activities.UNOActivity;
 import com.envative.uno.fragments.ChallengeFragment;
 import com.envative.uno.fragments.ChallengeModalFragment;
 import com.envative.uno.fragments.LobbyFragment;
@@ -51,6 +51,7 @@ public class SocketService {
     private Context context;
     private Manager manager; // emitter manager
     private static Socket loginSocket;
+    private static Socket gameSocket;
     private Fragment loginDelegate;
     private Fragment signupDelegate;
     private Fragment lobbyDelegate;
@@ -58,6 +59,18 @@ public class SocketService {
     private Fragment gameDelegate;
     private Fragment challengeModalDelegate;
     private Fragment chatDelegate;
+
+    public enum ChallengeResType{
+        Cancel(0),
+        Accept(1),
+        Decline(2);
+
+        public int rawValue;
+
+        ChallengeResType(int value){
+            this.rawValue = value;
+        }
+    }
 
     private SocketService(Context context){
         this.context  = context;
@@ -83,7 +96,9 @@ public class SocketService {
             try {
                 manager = new Manager(new URI(UNOAppState.devURL));
                 loginSocket = manager.socket("/login");
+                gameSocket = manager.socket("/game");
                 Log.d("setup manager", "login");
+                Log.d("setup manager", "game");
             } catch (URISyntaxException e) {
                 e.printStackTrace();
             }
@@ -91,28 +106,44 @@ public class SocketService {
 
 
         if(!loginSocket.connected()){
-            Log.d("loginSocket ", "not connnected yet");
+            Log.d("loginSocket ", "not connected yet");
+            Log.d("gameSocket ", "not connected yet");
             loginSocket.connect();
 
             loginSocket.on("connected", onConnection);
             loginSocket.on("validateLogin", onValidateLogin);
             loginSocket.on("addUser", onAddUser);
             loginSocket.on("validateToken", onValidateToken);
-            loginSocket.on("sayUno", onSayUno);
-            loginSocket.on("challengeUno", onChallengeUno);
-            loginSocket.on("createGame", onCreateGame);
-            loginSocket.on("quitGame", onQuitGame);
-            loginSocket.on("getGameByChallengeId", onGetGameByChallengeId);
-            loginSocket.on("getGameByGameId", onGetGameByGameId);
-            loginSocket.on("drawCard", onDrawCard);
+
+            // Lobby Calls
+            loginSocket.on("handleChallenge", onHandleChallenge);
             loginSocket.on("getOnlineUsers", onGetOnlineUsers);
             loginSocket.on("getSentChallenges", onGetSentChallenges);
             loginSocket.on("getChallenges", onGetChallenges);
             loginSocket.on("getChallenge", onGetChallenge);
-            loginSocket.on("checkPlayersInGameRoom", onCheckPlayersInGameRoom);
             loginSocket.on("sendChallenge", onSendChallenge);
+
+
+            // Chat Calls
             loginSocket.on("chatMsg", onChatMsg);
             loginSocket.on("getChat", onGetChat);
+        }
+
+        if(!gameSocket.connected()){
+            gameSocket.connect();
+
+            // Pregame Lobby Calls
+            gameSocket.on("getGameByChallengeId", onGetGameByChallengeId);
+            gameSocket.on("checkPlayersInGameRoom", onCheckPlayersInGameRoom);
+
+            // Game Calls
+            gameSocket.on("createGame", onCreateGame);
+            gameSocket.on("quitGame", onQuitGame);
+            gameSocket.on("sayUno", onSayUno);
+            gameSocket.on("drawCard", onDrawCard);
+            gameSocket.on("challengeUno", onChallengeUno);
+            gameSocket.on("getGameByGameId", onGetGameByGameId);
+            gameSocket.on("setPlayerInGame", onSetPlayerInGame);
         }
     }
 
@@ -127,19 +158,29 @@ public class SocketService {
         loginSocket.off("validateLogin", onValidateLogin);
         loginSocket.off("addUser", onAddUser);
         loginSocket.off("validateToken", onValidateToken);
-        loginSocket.off("sayUno", onSayUno);
-        loginSocket.off("challengeUno", onChallengeUno);
-        loginSocket.off("createGame", onCreateGame);
-        loginSocket.off("quitGame", onQuitGame);
-        loginSocket.off("getGameByChallengeId", onGetGameByChallengeId);
-        loginSocket.off("getGameByGameId", onGetGameByGameId);
-        loginSocket.off("drawCard", onDrawCard);
+
+        // Lobby Calls
+        loginSocket.off("handleChallenge", onHandleChallenge);
         loginSocket.off("getOnlineUsers", onGetOnlineUsers);
         loginSocket.off("getSentChallenges", onGetSentChallenges);
         loginSocket.off("getChallenges", onGetChallenges);
         loginSocket.off("getChallenge", onGetChallenge);
-        loginSocket.off("checkPlayersInGameRoom", onCheckPlayersInGameRoom);
         loginSocket.off("sendChallenge", onSendChallenge);
+
+        // Pregame Lobby Calls
+        gameSocket.off("getGameByChallengeId", onGetGameByChallengeId);
+        gameSocket.off("checkPlayersInGameRoom", onCheckPlayersInGameRoom);
+
+        // Game Calls
+        gameSocket.off("createGame", onCreateGame);
+        gameSocket.off("quitGame", onQuitGame);
+        gameSocket.off("sayUno", onSayUno);
+        gameSocket.off("drawCard", onDrawCard);
+        gameSocket.off("challengeUno", onChallengeUno);
+        gameSocket.off("getGameByGameId", onGetGameByGameId);
+        gameSocket.off("setPlayerInGame", onSetPlayerInGame);
+
+        // Chat Calls
         loginSocket.off("chatMsg", onChatMsg);
         loginSocket.off("getChat", onGetChat);
     }
@@ -247,7 +288,7 @@ public class SocketService {
     public void sayUno(){
         // ensure they only have one card
         if(UNOAppState.currGame.currPlayer.hand.size() <= 2){
-            loginSocket.emit("sayUno", buildBasicGamePacket());
+            gameSocket.emit("sayUno", buildBasicGamePacket());
         }
     }
 
@@ -274,7 +315,7 @@ public class SocketService {
 
 
     public void challengeUno(){
-        loginSocket.emit("challengeUno", buildBasicGamePacket());
+        gameSocket.emit("challengeUno", buildBasicGamePacket());
     }
 
     private Emitter.Listener onChallengeUno = new Emitter.Listener() {
@@ -300,7 +341,7 @@ public class SocketService {
 
 
     public void startGame(){
-        loginSocket.emit("createGame", buildBasicChallengePacket());
+        gameSocket.emit("createGame", buildBasicChallengePacket());
     }
 
     private Emitter.Listener onCreateGame = new Emitter.Listener() {
@@ -337,7 +378,7 @@ public class SocketService {
     };
 
     public void quitGame(){
-        loginSocket.emit("quitGame", buildBasicGamePacket());
+        gameSocket.emit("quitGame", buildBasicGamePacket());
     }
 
     private Emitter.Listener onQuitGame = new Emitter.Listener() {
@@ -366,7 +407,7 @@ public class SocketService {
 
 
     public void getGameByChallengeId(){
-        loginSocket.emit("getGameByChallengeId", buildBasicChallengePacket());
+        gameSocket.emit("getGameByChallengeId", buildBasicChallengePacket());
     }
 
 
@@ -377,12 +418,11 @@ public class SocketService {
                 @Override
                 public void run() {
                     Log.d("onGetGameByChallengeId", "args: " + args[0]);
-                    JsonObject data = (JsonObject) args[0];
-                    String success = "";
-                    success = data.get("msg").getAsString();
+                    JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
+                    String success = data.get("msg").getAsString();
                     if(success.equals("success")){
                         //TODO: left off here
-                        setPlayerInGame();
+                        setPlayerInGame(UNOAppState.currChallengeId);
                         UNOAppState.currGameId = data.get("data").getAsJsonObject().get("_id").getAsString();
                         setCurrGame(data.get("data").getAsJsonObject());
 //                        vc.performSegueWithIdentifier("pregame-lobby-game", sender: vc); // opens gameVC
@@ -397,7 +437,7 @@ public class SocketService {
 
 
     public void getCurrGame(){
-        loginSocket.emit("getGameByGameId", buildBasicGamePacket());
+        gameSocket.emit("getGameByGameId", buildBasicGamePacket());
     }
 
 
@@ -492,7 +532,7 @@ public class SocketService {
 
     public void drawCard(){
         if (UNOAppState.currGame.currPlayer.isMyTurn) {
-            loginSocket.emit("drawCard", buildBasicGamePacket());
+            gameSocket.emit("drawCard", buildBasicGamePacket());
         }else{
             Toast.makeText(context, "Its not your turn", Toast.LENGTH_LONG).show();
         }
@@ -573,10 +613,6 @@ public class SocketService {
 
     public void handleValidateMove(String svgName){
 
-    }
-
-    public void setPlayerInGame(){
-        loginSocket.emit("setPlayerInGame", buildBasicChallengePacket());
     }
 
     public int getStatusIndicatorColor(String status){
@@ -723,7 +759,7 @@ public class SocketService {
             ((Activity)context).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d("onGetSentChallenges", "args: " + args[0]);
+//                    Log.d("onGetSentChallenges", "args: " + args[0]);
                     JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
                     String success = "";
                     success = data.get("msg").getAsString();
@@ -751,7 +787,7 @@ public class SocketService {
             ((Activity)context).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d("onGetChallenges", "args: " + args[0]);
+//                    Log.d("onGetReceivedChallenges", "args: " + args[0]);
                     JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
                     String success = "";
                     success = data.get("msg").getAsString();
@@ -767,6 +803,7 @@ public class SocketService {
     };
 
     public void getChallenge(boolean currUserIsChallenger){
+        UNOAppState.currUserIsChallenger = currUserIsChallenger;
         JsonObject getChallengePacket = new JsonObject();
         getChallengePacket.add("challengeId", new JsonPrimitive( UNOAppState.currChallengeId ));
 
@@ -789,8 +826,9 @@ public class SocketService {
 
                         JsonObject currChallenge = data.get("data").getAsJsonObject();
                         if(currChallenge.get("status").getAsString().equals("cancelled")){
-                            // dissmissviewcontroller here :. go back to lobby
-//                            vc.dismissViewControllerAnimated(true, completion: nil)
+                            // dismiss view controller here :. go back to lobby
+                            ((Activity)context).getFragmentManager().popBackStack(); // go back
+                            Toast.makeText(context, "Someone has cancelled this challenge", Toast.LENGTH_LONG).show();
                             // show message saying "Sorry someone has cancelled this challenge"
                         }
 
@@ -800,9 +838,38 @@ public class SocketService {
                             // they accepted the challenge
                             // set player in game
                             // the join game
+                            UNOAppState.currChallengeId = currChallenge.get("id").getAsString();
+                            setPlayerInGame(UNOAppState.currChallengeId);
+                            getGameByChallengeId();
                         }
                     }else{
                         Log.d(TAG, "ERROR: onCheckPlayersInGameRoom error!");
+                        getChallenge(UNOAppState.currUserIsChallenger);
+                    }
+                }
+            });
+        }
+    };
+
+    public void setPlayerInGame(String challengeId){
+        UNOAppState.currChallengeId = challengeId;
+        gameSocket.emit("setPlayerInGame", buildBasicChallengePacket());
+    }
+
+    private Emitter.Listener onSetPlayerInGame = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            ((Activity)context).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d("onSetPlayerInGame", "args: " + args[0]);
+                    JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
+                    String success = "";
+                    success = data.get("msg").getAsString();
+                    if(success.equals("success")){
+                        // do nothing as of now
+                    }else{
+                        Log.d(TAG, "ERROR: onSetPlayerInGame error!");
                     }
                 }
             });
@@ -810,7 +877,7 @@ public class SocketService {
     };
 
     public void checkPlayersInGameRoom(){
-        loginSocket.emit("checkPlayersInGameRoom", buildBasicGamePacket());
+        gameSocket.emit("checkPlayersInGameRoom", buildBasicGamePacket());
     }
 
     private Emitter.Listener onCheckPlayersInGameRoom = new Emitter.Listener() {
@@ -854,6 +921,7 @@ public class SocketService {
     }
 
     public void sendChallenge(ArrayList<String> usersToChallenge){
+        ((UNOActivity)context).showActivityIndicator();
         Log.d("SendChallenge:UID:", UNOAppState.currUser.id + "::");
         JsonObject sendChallengePacket = new JsonObject();
         sendChallengePacket.add("challengerId", new JsonPrimitive( UNOAppState.currUser.id ));
@@ -883,6 +951,7 @@ public class SocketService {
                         Log.d(TAG, "ERROR: sayUno error!");
                         Toast.makeText(context, "Error sending challenge!", Toast.LENGTH_LONG).show();
                     }
+                    ((UNOActivity)context).hideActivityIndicator();
                     challengeModalDelegate.getActivity().getFragmentManager().popBackStack();
                     ((ActivityWithIndicator)challengeModalDelegate.getActivity()).hideActivityIndicator();
                 }
@@ -959,20 +1028,36 @@ public class SocketService {
 //        lobbyVC!.presentViewController(alertController, animated: true, completion: nil)
 //    }
 
-    public void handleChallenge(int choice, Callback completion){
+    public void handleChallenge(String challengeId, ChallengeResType choice){
+        UNOAppState.currChallengeId = challengeId;
         Log.d("handleChallenge","currChallengeId "+ UNOAppState.currChallengeId);
 
         JsonObject handleChallengePacket = new JsonObject();
         handleChallengePacket.add("id", new JsonPrimitive( UNOAppState.currChallengeId ));
         handleChallengePacket.add("userId", new JsonPrimitive( UNOAppState.currUser.id ));
-        handleChallengePacket.add("choice", new JsonPrimitive( choice ));
+        handleChallengePacket.add("choice", new JsonPrimitive( choice.rawValue ));
 
         loginSocket.emit("handleChallenge", handleChallengePacket);
-//        completion.callback(msg.stringValue);
-
     }
 
-
+    private Emitter.Listener onHandleChallenge = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            ((Activity)context).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d("onHandleChallenge", "args: " + args[0]);
+                    JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
+                    String success = data.get("msg").getAsString();
+                    if(success.equals("success")){
+                        Toast.makeText(context, "", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Log.d(TAG, "ERROR: sayUno error!");
+                    }
+                }
+            });
+        }
+    };
 
     //region Utils
 

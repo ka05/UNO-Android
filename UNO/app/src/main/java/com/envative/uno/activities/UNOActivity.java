@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,8 +19,19 @@ import com.envative.uno.comms.UNOUtil;
 import com.envative.uno.fragments.LobbyFragment;
 import com.envative.uno.fragments.ProfileFragment;
 
+import java.io.File;
+
+import pl.aprilapps.easyphotopicker.DefaultCallback;
+import pl.aprilapps.easyphotopicker.EasyImage;
+
 
 public class UNOActivity extends EMNavigationDrawerActivity {
+
+    private ProfileFragment profileFragment;
+
+    public void setProfileFragment(ProfileFragment profileFragment) {
+        this.profileFragment = profileFragment;
+    }
 
     public enum NavigationViews{
         Lobby,
@@ -33,12 +45,38 @@ public class UNOActivity extends EMNavigationDrawerActivity {
 
         setNavigationViewMenu(R.menu.activity_uno_drawer);
         setNavigationViewItemBackgroundColor(R.color.drawer_item);
-//        activityIndicatorType = EMActivityWithIndicator.ActivityIndicatorType.Dots;
-        EMModal.setModalAttributes(EMModal.RoundedModal.EMModalAnimType.GlideAndGrow, 10, R.color.colorPrimary, R.color.colorPrimaryDark, R.color.colorPrimaryDark, R.color.white);
+        EMModal.setModalAttributes(EMModal.RoundedModal.EMModalAnimType.GlideAndGrow, 10, R.color.colorLightGray, R.color.colorPrimaryDark, R.color.colorPrimaryDark, R.color.white);
 
         SocketService.get(this); // initialize socket service
         requestFragmentChange(new LobbyFragment(), "lobby");
         setTitleText("UNO Lobby");
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d("onActivityResult", "called");
+        EasyImage.handleActivityResult(requestCode, resultCode, data, this, new DefaultCallback() {
+            @Override
+            public void onImagePickerError(Exception e, EasyImage.ImageSource source, int type) {
+                //Some error handling
+            }
+
+            @Override
+            public void onImagePicked(File imageFile, EasyImage.ImageSource source, int type) {
+                //Handle the image
+                profileFragment.onPhotoReturned(imageFile);
+            }
+
+            @Override
+            public void onCanceled(EasyImage.ImageSource source, int type) {
+                //Cancel handling, you might wanna remove taken photo if it was canceled
+                if (source == EasyImage.ImageSource.CAMERA) {
+                    File photoFile = EasyImage.lastlyTakenButCanceledPhoto(getApplicationContext());
+                    if (photoFile != null) photoFile.delete();
+                }
+            }
+        });
     }
 
     @Override
@@ -81,14 +119,14 @@ public class UNOActivity extends EMNavigationDrawerActivity {
         return super.dispatchTouchEvent(ev);
     }
 
+
     public static void hideKeyboard(Activity act) {
         if(act!=null)
             ((InputMethodManager)act.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow((act.getWindow().getDecorView().getApplicationWindowToken()), 0);
     }
 
-
-    // NOTES:
     /*
+    NOTES:
 
     Activities
     -LoginActivity ( Login / Signup )
@@ -118,10 +156,8 @@ public class UNOActivity extends EMNavigationDrawerActivity {
 
 
     TODO: Create the following views
-    Game
-    - PLayers
-    - Hand
 
     Help
      */
+
 }

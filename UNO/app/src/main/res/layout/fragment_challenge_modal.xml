@@ -8,34 +8,76 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:id="@+id/linearLayout2">
+        android:id="@+id/linearLayoutLegend">
 
-        <View
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:background="@drawable/circle_view"
-            android:layout_margin="10dp"
-            android:id="@+id/inGameLegendCircleView" />
-
-        <TextView
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="= Currently in a game"
-            android:id="@+id/txtLegend"
-            android:layout_margin="10dp"
-            android:gravity="center_vertical"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/linearLayout2"
+            android:layout_weight="0.5">
+
+            <View
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:background="@drawable/circle_view"
+                android:layout_margin="10dp"
+                android:id="@+id/inGameLegendCircleView" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="In a game"
+                android:id="@+id/txtLegend"
+                android:layout_margin="10dp"
+                android:gravity="center_vertical"
+                android:textColor="@color/black"
+                android:textSize="20sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/linearLayout6"
+            android:layout_weight="0.5">
+
+            <View
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:background="@drawable/circle_view"
+                android:layout_margin="10dp"
+                android:id="@+id/availableLegendCircleView" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Available"
+                android:id="@+id/txtLegendAvailable"
+                android:layout_margin="10dp"
+                android:gravity="center_vertical"
+                android:textColor="@color/black"
+                android:textSize="20sp" />
+
+        </LinearLayout>
 
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorLightGray"
+        android:layout_below="@+id/linearLayoutLegend" />
 
     <ListView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/lvOnlinePlayers"
         android:layout_gravity="center_horizontal"
-        android:layout_below="@+id/linearLayout2"
+        android:layout_below="@+id/linearLayoutLegend"
         android:layout_above="@+id/linearLayout3"
         android:layout_marginBottom="10dp" />
 
@@ -47,7 +89,7 @@
         android:id="@+id/emptyListViewText"
         android:padding="10dp"
         android:layout_margin="5dp"
-        android:layout_below="@+id/linearLayout2"
+        android:layout_below="@+id/linearLayoutLegend"
         android:gravity="center_vertical|center_horizontal"
         android:textSize="17sp"
         android:layout_gravity="center_horizontal"

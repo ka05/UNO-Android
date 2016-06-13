@@ -53,6 +53,7 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
         findViews(v);
 
         SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.Game);
+
         return v;
     }
 
