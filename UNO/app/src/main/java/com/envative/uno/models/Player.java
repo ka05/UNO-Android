@@ -14,25 +14,30 @@ public class Player {
     public String username = "";
     public String id = "";
     public boolean inGame = false;
-    public String cardCount = "";
+    public int cardCount = 0;
     public boolean calledUno = false;
     public boolean isMyTurn = false;
     public ArrayList<Card> hand = new ArrayList<>();
 
     public Player(JsonObject playerObj){
+        if(playerObj != null){
+            username = playerObj.get("username").getAsString();
+            id = playerObj.get("id").getAsString();
+            inGame = playerObj.get("inGame").getAsBoolean();
+            calledUno = playerObj.get("calledUno").getAsBoolean();
+            isMyTurn = playerObj.get("isMyTurn").getAsBoolean();
 
-        username = playerObj.get("username").getAsString();
-        id = playerObj.get("id").getAsString();
-        inGame = playerObj.get("inGame").getAsBoolean();
-        calledUno = playerObj.get("calledUno").getAsBoolean();
-        isMyTurn = playerObj.get("isMyTurn").getAsBoolean();
-        cardCount = playerObj.get("cardCount").getAsString();
+            if(playerObj.get("cardCount") != null) {
+                cardCount = playerObj.get("cardCount").getAsInt();
+            }
+            if(playerObj.getAsJsonArray("hand") != null){
+                JsonArray handCards = playerObj.getAsJsonArray("hand");
 
-        JsonArray handCards = playerObj.getAsJsonArray("hand");
-
-        hand.clear();
-        for(JsonElement card : handCards){
-            hand.add( new Card( card.getAsJsonObject() ) );
+                hand.clear();
+                for(JsonElement card : handCards){
+                    hand.add( new Card( card.getAsJsonObject() ) );
+                }
+            }
         }
     }
 }

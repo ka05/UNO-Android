@@ -3,19 +3,19 @@ package com.envative.uno.comms;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
-import android.graphics.Color;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.envative.emoba.delegates.ActivityWithIndicator;
 import com.envative.emoba.widgets.EMModal;
-import com.envative.uno.R;
 import com.envative.uno.activities.LoginActivity;
 import com.envative.uno.activities.UNOActivity;
 import com.envative.uno.fragments.ChallengeFragment;
 import com.envative.uno.fragments.ChallengeModalFragment;
+import com.envative.uno.fragments.GameFragment;
 import com.envative.uno.fragments.LobbyFragment;
 import com.envative.uno.fragments.LoginFragment;
+import com.envative.uno.fragments.PreGameLobbyFragment;
 import com.envative.uno.models.Card;
 import com.envative.uno.models.Challenge;
 import com.envative.uno.models.ChatMsg;
@@ -144,6 +144,7 @@ public class SocketService {
             gameSocket.on("challengeUno", onChallengeUno);
             gameSocket.on("getGameByGameId", onGetGameByGameId);
             gameSocket.on("setPlayerInGame", onSetPlayerInGame);
+            gameSocket.on("validateMove", onValidateMove);
         }
     }
 
@@ -179,6 +180,7 @@ public class SocketService {
         gameSocket.off("challengeUno", onChallengeUno);
         gameSocket.off("getGameByGameId", onGetGameByGameId);
         gameSocket.off("setPlayerInGame", onSetPlayerInGame);
+        gameSocket.off("validateMove", onValidateMove);
 
         // Chat Calls
         loginSocket.off("chatMsg", onChatMsg);
@@ -268,17 +270,13 @@ public class SocketService {
                 @Override
                 public void run() {
                     Log.d("validateToken", "args: " + args[0]);
-                    JSONObject data = (JSONObject) args[0];
-                    boolean success = false;
-                    try {
-                        success = data.getBoolean("valid");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    if(success){
+                    JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
+                    String success = data.get("msg").getAsString();
 
+                    if(success.equals("success")){
+                        Log.d("onValidateToken", "valid");
                     }else{
-
+                        Log.d("onValidateToken", "invalid");
                     }
                 }
             });
@@ -299,9 +297,8 @@ public class SocketService {
                 @Override
                 public void run() {
                     Log.d("validateToken", "args: " + args[0]);
-                    JsonObject data = (JsonObject) args[0];
-                    String success = "";
-                    success = data.get("msg").getAsString();
+                    JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
+                    String success = data.get("msg").getAsString();
                     if(success.equals("success")){
                         setCurrGame(data.get("data").getAsJsonObject());
                     }else{
@@ -325,9 +322,8 @@ public class SocketService {
                 @Override
                 public void run() {
                     Log.d("onChallengeUno", "args: " + args[0]);
-                    JsonObject data = (JsonObject) args[0];
-                    String success = "";
-                    success = data.get("msg").getAsString();
+                    JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
+                    String success = data.get("msg").getAsString();
                     if(success.equals("success")){
                         setCurrGame(data.get("data").getAsJsonObject());
                     }else{
@@ -351,9 +347,8 @@ public class SocketService {
                 @Override
                 public void run() {
                     Log.d("onCreateGame", "args: " + args[0]);
-                    JsonObject data = (JsonObject) args[0];
-                    String success = "";
-                    success = data.get("msg").getAsString();
+                    JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
+                    String success = data.get("msg").getAsString();
                     if(success.equals("success")){
 //                        getCurrChallengeInterval?.invalidate()
                         // show pregame lobby and poll for challenge to make sure everyone has joined and that nobody cancelled
@@ -362,12 +357,12 @@ public class SocketService {
                         Log.d(TAG,"CURRGAME "+ data.get("data").toString());
                         UNOAppState.currGameId = data.get("data").getAsJsonObject().get("_id").getAsString();
                         setCurrGame(data.get("data").getAsJsonObject());
+                        Log.d("currGameId: ", UNOAppState.currGameId +":");
 
                         UNOAppState.inGameOrGameLobby = true;
                         UNOAppState.preGameLobbyMsg = "Please wait for everyone to join the game.";
                         // navigate to Pre-game-lobby
-//                        vc.performSegueWithIdentifier("lobby-pregamelobby", sender: vc);
-
+                        checkPlayersInGameRoom(UNOAppState.currGameId);
                     }else{
                         Log.d(TAG, "ERROR: sayUno error!");
                     }
@@ -388,9 +383,8 @@ public class SocketService {
                 @Override
                 public void run() {
                     Log.d("onCreateGame", "args: " + args[0]);
-                    JsonObject data = (JsonObject) args[0];
-                    String success = "";
-                    success = data.get("msg").getAsString();
+                    JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
+                    String success = data.get("msg").getAsString();
                     if(success.equals("success")){
                         UNOAppState.inGameOrGameLobby = false; // no longer in game or game lobby
 
@@ -421,13 +415,14 @@ public class SocketService {
                     JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
                     String success = data.get("msg").getAsString();
                     if(success.equals("success")){
-                        //TODO: left off here
                         setPlayerInGame(UNOAppState.currChallengeId);
                         UNOAppState.currGameId = data.get("data").getAsJsonObject().get("_id").getAsString();
                         setCurrGame(data.get("data").getAsJsonObject());
-//                        vc.performSegueWithIdentifier("pregame-lobby-game", sender: vc); // opens gameVC
+
+                        ((PreGameLobbyFragment)preGameLobbyDelegate).showGame(); // opens game screen
                     }else{
-                        Log.d(TAG, "ERROR: sayUno error!");
+                        Log.d(TAG, "ERROR: onGetGameByChallengeId error!");
+                        getGameByChallengeId();
                     }
                 }
             });
@@ -455,7 +450,6 @@ public class SocketService {
                         JsonObject tempGameJSON = data.get("data").getAsJsonObject();
                         UNOGame tempGame = new UNOGame(tempGameJSON);
 
-
                         boolean allPlayersInGame = true;
                         // ensure all players are still in game
                         for(int i = 0, j = tempGame.players.size(); i<j; i++){
@@ -482,7 +476,6 @@ public class SocketService {
                                         ( UNOAppState.currGame.currPlayer.hand.size() == 0 ) ){
 
                                     setCurrGame(tempGameJSON);
-//                                    gameVC.refreshView()
 
                                     // if there is a winner
                                     checkWinner(tempGame);
@@ -492,7 +485,6 @@ public class SocketService {
                                     // update my hand if the length differs from before
                                     if(tempGame.currPlayer.hand.size() != UNOAppState.currGame.currPlayer.hand.size()){
                                         setCurrGame(tempGameJSON);
-//                                        gameVC.refreshView();
                                     }
                                 }
                             }
@@ -513,7 +505,9 @@ public class SocketService {
     public void setCurrGame(JsonObject gameObj){
         UNOAppState.currGameJSON = gameObj;
         UNOAppState.currGame = new UNOGame(gameObj); // re initialize
-//        UNOAppState.currGame.initGameData(gameObj);
+        if(gameDelegate != null){
+            ((GameFragment)gameDelegate).updateGameView();
+        }
     }
 
     public void checkWinner(UNOGame newGame){
@@ -545,12 +539,10 @@ public class SocketService {
                 @Override
                 public void run() {
                     Log.d("onValidateMove", "args: " + args[0]);
-                    JsonObject data = (JsonObject) args[0];
-                    String success = "";
-                    success = data.get("msg").getAsString();
+                    JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
+                    String success = data.get("msg").getAsString();
                     if(success.equals("success")){
                         setCurrGame(data.get("data").getAsJsonObject());
-//                    gameVC?.refreshView()
                     }else{
                         Log.d(TAG, "ERROR: onValidateMove error!");
                     }
@@ -565,9 +557,6 @@ public class SocketService {
             // if it is wild or wild draw4
             if(card.svgName == "ww" || card.svgName == "wd"){
                 //TODO: complete handling for wild card choice
-//                displayWildCardChoices(gameVC!, callback: { (color) -> Void in
-//                    handleValidateMove(card.svgName, chosenColor:color);
-//                })
 
             }else{
                 // regular card - play it
@@ -596,13 +585,13 @@ public class SocketService {
                 @Override
                 public void run() {
                     Log.d("onValidateMove", "args: " + args[0]);
-                    JsonObject data = (JsonObject) args[0];
-                    String success = "";
-                    success = data.get("msg").getAsString();
+                    JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
+                    String success = data.get("msg").getAsString();
                     if(success.equals("success")){
-//                        gameVC!.refreshView()
                         UNOGame tempGame = new UNOGame(data.get("data").getAsJsonObject());
                         checkWinner(tempGame);
+                        setCurrGame(data.get("data").getAsJsonObject());
+                        ((GameFragment)gameDelegate).updateGameView();
                     }else{
                         Log.d(TAG, "ERROR: onValidateMove error!");
                     }
@@ -613,31 +602,6 @@ public class SocketService {
 
     public void handleValidateMove(String svgName){
 
-    }
-
-    public int getStatusIndicatorColor(String status){
-
-        int color = Color.BLACK;
-
-        switch(status){
-            case "all responded":
-                color = Color.GREEN;
-                break;
-            case "accepted":
-                color = Color.GREEN;
-                break;
-            case "declined":
-                color = context.getResources().getColor(R.color.challengeOrange);
-                break;
-            case "cancelled":
-                color = Color.RED;
-                break;
-            default:
-                color = Color.BLACK;
-                break;
-        }
-
-        return color;
     }
 
     public void sendChat(String msg){
@@ -657,8 +621,7 @@ public class SocketService {
                 public void run() {
                     Log.d("onChatMsg", "args: " + args[0]);
                     JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
-                    String success = "";
-                    success = data.get("msg").getAsString();
+                    String success = data.get("msg").getAsString();
                     if(success.equals("success")){
                         // show success msg in UI
 
@@ -832,13 +795,16 @@ public class SocketService {
                             // show message saying "Sorry someone has cancelled this challenge"
                         }
 
-                        if(!UNOAppState.currUserIsChallenger){
-                            getGameByChallengeId();
+                        Log.d(TAG, "UNOAppState.currUserIsChallenger: " + UNOAppState.currUserIsChallenger);
+                        UNOAppState.currChallengeId = currChallenge.get("id").getAsString();
+                        if(UNOAppState.currUserIsChallenger){
+
+
                         }else{
                             // they accepted the challenge
                             // set player in game
                             // the join game
-                            UNOAppState.currChallengeId = currChallenge.get("id").getAsString();
+
                             setPlayerInGame(UNOAppState.currChallengeId);
                             getGameByChallengeId();
                         }
@@ -876,6 +842,14 @@ public class SocketService {
         }
     };
 
+    public void checkPlayersInGameRoom(String gameId){
+        JsonObject basicGamePacket = new JsonObject();
+        basicGamePacket.add("gameId", new JsonPrimitive( gameId ));
+        basicGamePacket.add("userId", new JsonPrimitive( UNOAppState.currUser.id));
+
+        gameSocket.emit("checkPlayersInGameRoom", basicGamePacket);
+    }
+
     public void checkPlayersInGameRoom(){
         gameSocket.emit("checkPlayersInGameRoom", buildBasicGamePacket());
     }
@@ -891,12 +865,16 @@ public class SocketService {
                     String success = "";
                     success = data.get("msg").getAsString();
                     if(success.equals("success")){
-//                        checkPlayersInGameRoomInterval?.invalidate()
                         // go to game via segue
-                        setCurrGame(data.get("data").getAsJsonObject());
-//                        vc.performSegueWithIdentifier("pregame-lobby-game", sender: vc);
+                        if(data.get("data") != null){
+                            if(data.get("data").isJsonObject()){
+                                setCurrGame(data.get("data").getAsJsonObject());
+                            }
+                        }
+                        ((PreGameLobbyFragment)preGameLobbyDelegate).showGame(); // opens game screen
                     }else{
                         Log.d(TAG, "ERROR: onCheckPlayersInGameRoom error!");
+                        checkPlayersInGameRoom();
                     }
                 }
             });

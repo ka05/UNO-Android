@@ -159,6 +159,8 @@ public class ChallengeFragment extends EMBaseFragment {
     }
 
     private void handleStartGame(Challenge challenge) {
+        UNOAppState.currChallengeId = challenge.id;
+        SocketService.get(getActivity()).startGame();
         lobbyDelegate.showPregameLobby(challenge);
     }
 
@@ -210,7 +212,7 @@ public class ChallengeFragment extends EMBaseFragment {
                         "", "OK", "CLOSE", null);
 
                 TextView btnAccept = (TextView) modal.getDialog().findViewById(R.id.btn1);
-                btnAccept.setBackgroundColor(getResources().getColor(R.color.legend_color3));
+                btnAccept.setBackgroundColor(getResources().getColor(R.color.colorCardGreen));
                 btnAccept.setText("Accept");
                 btnAccept.setOnClickListener(new View.OnClickListener() {
                     @Override

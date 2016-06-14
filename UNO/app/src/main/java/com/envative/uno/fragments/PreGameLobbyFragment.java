@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.envative.emoba.fragments.EMBaseFragment;
 import com.envative.uno.R;
+import com.envative.uno.activities.UNOActivity;
 import com.envative.uno.comms.SocketService;
 import com.envative.uno.comms.UNOAppState;
 import com.envative.uno.models.Challenge;
@@ -33,13 +34,16 @@ public class PreGameLobbyFragment extends EMBaseFragment {
         View v = inflater.inflate(R.layout.fragment_preg_game_lobby, container, false);
 
         SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.PreGameLobby);
+        ((UNOActivity)getActivity()).setTitleText("UNO Lobby");
 
         boolean currUserIsChallenger = currChallenge.challenger.equals(UNOAppState.currUser.username);
         UNOAppState.currChallengeId = currChallenge.id;
         SocketService.get(getActivity()).getChallenge(currUserIsChallenger);
         msg = (!currUserIsChallenger) ? "Please wait for the host to start the game." : "Waiting for other players, game will start when all players have joined.";
-        if(currUserIsChallenger)
-            SocketService.get(getActivity()).checkPlayersInGameRoom();
+
+//        if(currUserIsChallenger){
+//            SocketService.get(getActivity()).checkPlayersInGameRoom();
+//        }
 
         findViews(v);
 
@@ -51,7 +55,7 @@ public class PreGameLobbyFragment extends EMBaseFragment {
         txtPregameLobbyMsg = (TextView)v.findViewById(R.id.txtPregameLobbyMsg);
         txtPregameLobbyMsg.setText(msg);
 
-        btnCancelChallenge = (TextView)v.findViewById(R.id.btnCancelChallenge);
+        btnCancelChallenge = (TextView)v.findViewById(R.id.btnClose);
         btnCancelChallenge.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -60,6 +64,11 @@ public class PreGameLobbyFragment extends EMBaseFragment {
                 getActivity().getFragmentManager().popBackStack(); // go back to lobby
             }
         });
+    }
+
+    public void showGame(){
+        GameFragment gameFragment = new GameFragment();
+        delegate.requestFragmentChange(gameFragment, "game", true);
     }
 
     public Challenge getChallenge() {

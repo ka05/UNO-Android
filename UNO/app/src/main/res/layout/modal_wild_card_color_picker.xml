@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RED"
+        android:id="@+id/btnRed"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:layout_weight="0.5"
+        android:textSize="18dp"
+        android:textAllCaps="true"
+        android:clickable="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:minWidth="100dp"
+        android:background="@color/colorCardRed"
+        android:layout_marginTop="40dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="BLUE"
+        android:id="@+id/btnBlue"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:layout_weight="0.5"
+        android:textSize="18dp"
+        android:clickable="false"
+        android:textAllCaps="true"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:minWidth="100dp"
+        android:background="@color/colorCardBlue" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="GREEN"
+        android:id="@+id/btnGreen"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:layout_weight="0.5"
+        android:textSize="18dp"
+        android:textAllCaps="true"
+        android:clickable="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:minWidth="100dp"
+        android:background="@color/colorCardGreen" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Yellow"
+        android:id="@+id/btnYellow"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:layout_weight="0.5"
+        android:textSize="18dp"
+        android:textAllCaps="true"
+        android:clickable="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:minWidth="100dp"
+        android:background="@color/colorCardYellow" />
+
+</LinearLayout>
