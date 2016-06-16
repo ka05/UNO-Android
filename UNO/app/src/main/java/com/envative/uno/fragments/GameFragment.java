@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -212,8 +213,11 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
         cardImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // TODO: see why this is null
+            if(UNOAppState.currGame.currPlayer != null){
                 if(UNOAppState.currGame.currPlayer.isMyTurn){
                     // if card's color is "none" it is a wild card that has not been set yet.
+                    Log.d("Playing card", card.cardName);
                     if(card.color.equals("none")){
                         showWildCardColorChoiceModal(new Callback() {
                             @Override
@@ -228,6 +232,9 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
                 }else{
                     showToast("It's not your turn!");
                 }
+            }else{
+                Log.d("Card Played", "Game is null");
+            }
             }
         });
 
@@ -250,6 +257,7 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
             @Override
             public void onClick(View v) {
                 callback.callback(WildCardColors.Red);
+                modal.getDialog().dismiss();
             }
         });
 
@@ -258,6 +266,7 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
             @Override
             public void onClick(View v) {
                 callback.callback(WildCardColors.Blue);
+                modal.getDialog().dismiss();
             }
         });
 
@@ -266,6 +275,7 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
             @Override
             public void onClick(View v) {
                 callback.callback(WildCardColors.Green);
+                modal.getDialog().dismiss();
             }
         });
 
@@ -274,6 +284,7 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
             @Override
             public void onClick(View v) {
                 callback.callback(WildCardColors.Yellow);
+                modal.getDialog().dismiss();
             }
         });
     }
@@ -306,6 +317,7 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
 
 
     public void updateGameView(){
+
         UNOAppState.initCardNames();
 
         setPlayerUsernameActive();

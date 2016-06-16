@@ -1,5 +1,6 @@
 package com.envative.uno.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -7,12 +8,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
+import com.envative.emoba.delegates.Callback;
 import com.envative.emoba.fragments.EMBaseFragment;
 import com.envative.emoba.widgets.EMModal;
 import com.envative.uno.R;
 import com.envative.uno.activities.LoginActivity;
+import com.envative.uno.activities.UNOActivity;
 import com.envative.uno.comms.SocketService;
+import com.envative.uno.comms.UNOAppState;
+import com.envative.uno.comms.UNOUtil;
 import com.envative.uno.models.SocketDelegateType;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -30,6 +36,36 @@ public class SignupFragment extends EMBaseFragment implements View.OnClickListen
     private EditText passwordEditText;
     private EditText confirmPasswordEditText;
 
+    public Callback attemptSignupCallback = new Callback() {
+        @Override
+        public void callback(Object object) {
+            String message = (String)object;
+
+            if(!message.equals("success")){
+                EMModal.showModal(context, EMModal.ModalType.Error, "Signup Error", message);
+            }else{
+                // navigate to UNOActivity
+                Toast.makeText(getActivity(), "Signed Up!", Toast.LENGTH_LONG).show();
+
+                // now login
+                SocketService.get(getActivity()).setLoginFromSignupPage(true);
+                JsonObject credentials = new JsonObject();
+                credentials.add("username", new JsonPrimitive( UNOAppState.currUser.username ));
+                credentials.add("password", new JsonPrimitive( passwordEditText.getText().toString().trim() ));
+                SocketService.get(getActivity()).attemptLogin(credentials);
+            }
+        }
+    };
+
+    public Callback loginCallback = new Callback() {
+        @Override
+        public void callback(Object object) {
+            UNOUtil.get(getActivity()).setLoggedIn();
+            startActivity(new Intent(getActivity(), UNOActivity.class));
+            Toast.makeText(getActivity(), "Logged In!", Toast.LENGTH_LONG).show();
+        }
+    };
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -37,8 +73,13 @@ public class SignupFragment extends EMBaseFragment implements View.OnClickListen
         findViews(v);
 
         SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.Signup);
-
         return v;
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        SocketService.get(getActivity()).setLoginFromSignupPage(true);
     }
 
     private void findViews(View v) {

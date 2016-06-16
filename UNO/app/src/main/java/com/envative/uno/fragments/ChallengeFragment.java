@@ -66,20 +66,24 @@ public class ChallengeFragment extends EMBaseFragment {
         lvChallenges.setAdapter(adapter); // set up ListView
         emptyListView = (TextView)v.findViewById(R.id.emptyListViewText);
         lvChallenges.setEmptyView(v.findViewById(R.id.emptyListViewText));
-        updateChallengeType(type);
+        updateChallengeType(type, true);
 
     }
 
-    public void updateChallengeType(ChallengeType type){
+    public void updateChallengeType(ChallengeType type, boolean fetchData){
         filteredChallenges.clear();
         if(type == ChallengeType.Sent){
-            txtChallengesHeader.setText(SENT_CHALLENGES);
+            if(!txtChallengesHeader.getText().equals(SENT_CHALLENGES)){
+                txtChallengesHeader.setText(SENT_CHALLENGES);
+            }
             filteredChallenges.addAll(UNOAppState.sentChallenges);
-            SocketService.get(getActivity()).getSentChallenges();
+            if(fetchData) SocketService.get(getActivity()).getSentChallenges();
         }else if(type == ChallengeType.Received){
-            txtChallengesHeader.setText(RECEIVED_CHALLENGES);
+            if(!txtChallengesHeader.getText().equals(RECEIVED_CHALLENGES)){
+                txtChallengesHeader.setText(RECEIVED_CHALLENGES);
+            }
             filteredChallenges.addAll(UNOAppState.receivedChallenges);
-            SocketService.get(getActivity()).getReceivedChallenges();
+            if(fetchData) SocketService.get(getActivity()).getReceivedChallenges();
         }
         adapter.notifyDataSetChanged();
     }
@@ -241,6 +245,8 @@ public class ChallengeFragment extends EMBaseFragment {
         if(status.equals("all responded")){
             color = R.color.colorCardGreen;
         }else if(status.equals("accepted")){
+            color = R.color.colorCardGreen;
+        }else if(status.equals("ready")){
             color = R.color.colorCardGreen;
         }else if(status.equals("declined")){
             color = R.color.challengeOrange;

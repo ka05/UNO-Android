@@ -45,6 +45,7 @@ public class LoginFragment extends EMBaseFragment implements View.OnClickListene
                 // navigate to UNOActivity
                 UNOUtil.get(getActivity()).setLoggedIn();
                 startActivity(new Intent(getActivity(), UNOActivity.class));
+                Toast.makeText(getActivity(), "Logged In!", Toast.LENGTH_LONG).show();
             }
         }
     };
@@ -57,6 +58,12 @@ public class LoginFragment extends EMBaseFragment implements View.OnClickListene
 
         SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.Login);
         return v;
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        SocketService.get(getActivity()).setLoginFromSignupPage(false);
     }
 
     private void findViews(View v) {
