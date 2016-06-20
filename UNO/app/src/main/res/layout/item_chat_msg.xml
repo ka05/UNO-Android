@@ -8,11 +8,11 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:background="@drawable/progress_bg">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="70dp"
             android:layout_height="wrap_content"
             android:text="Name:"
             android:id="@+id/txtName"
@@ -23,16 +23,15 @@
             android:paddingLeft="10dp" />
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Message"
             android:id="@+id/txtMsg"
-            android:layout_alignBottom="@+id/txtDate"
-            android:layout_toEndOf="@+id/txtName"
             android:textColor="@color/black"
             android:paddingTop="6dp"
             android:paddingBottom="6dp"
-            android:paddingRight="50dp" />
+            android:paddingRight="80dp"
+            android:layout_toEndOf="@+id/txtName" />
 
         <TextView
             android:layout_width="wrap_content"

@@ -4,6 +4,9 @@
     <color name="colorPrimaryDark">#8b3e15</color>
     <color name="colorAccent">#e45016</color>
     <color name="btnPrimary">#ec9513</color>
+    <color name="btnPrimaryPressed">#d16b12</color>
+    <color name="btnGameEnable">#55000000</color>
+    <color name="btnGamePressed">#55cccccc</color>
     <color name="challengeOrange">#ec9513</color>
     <color name="white_transparent">#CCffffff</color>
 
@@ -18,4 +21,5 @@
 
     <color name="dkBtnBackground">#55000000</color>
     <color name="black">#000000</color>
+    <color name="transparent_black">#aa000000</color>
 </resources>

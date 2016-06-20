@@ -122,9 +122,11 @@
             android:background="@color/colorMedGray"/>
 
         <LinearLayout
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+            android:layout_height="wrap_content"
+            android:id="@+id/btnRetakePhotoContainer"
+            android:visibility="visible">
 
             <TextView
                 android:layout_width="match_parent"
@@ -134,17 +136,17 @@
                 android:textAlignment="center"
                 android:textAllCaps="true"
                 android:layout_weight="0.5"
-                android:visibility="gone"
                 android:textSize="20sp"
                 android:textColor="@color/white"
                 android:background="@color/colorPrimaryDark"
                 android:padding="10dp" />
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/colorMedGray"/>
         </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/colorMedGray"/>
+
     </LinearLayout>
 </LinearLayout>

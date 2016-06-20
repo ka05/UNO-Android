@@ -20,6 +20,11 @@
         android:layout_below="@+id/chatFragmentContainer"
         android:layout_above="@+id/btnSendChallenge">
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/colorLightGray"/>
+
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -28,6 +33,11 @@
             android:layout_above="@+id/btnSendChallenge"
             android:id="@+id/sentChallengesContainer"
             android:layout_weight="0.5"></FrameLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/colorLightGray"/>
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -38,6 +48,13 @@
             android:id="@+id/receivedChallengesContainer"
             android:layout_weight="0.5" />
     </LinearLayout>
+
+    <View
+        android:id="@+id/divider"
+        android:background="@drawable/white_black_gradient"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_above="@+id/btnSendChallenge"/>
 
     <TextView
         android:layout_width="match_parent"

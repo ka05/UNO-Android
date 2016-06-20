@@ -1,6 +1,7 @@
 package com.envative.uno.activities;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,11 +11,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.envative.emoba.activities.EMNavigationDrawerActivity;
+import com.envative.emoba.delegates.Callback;
 import com.envative.emoba.widgets.EMModal;
 import com.envative.uno.R;
 import com.envative.uno.comms.SocketService;
+import com.envative.uno.comms.UNOAppState;
 import com.envative.uno.comms.UNOUtil;
 import com.envative.uno.fragments.LobbyFragment;
 import com.envative.uno.fragments.ProfileFragment;
@@ -29,11 +33,17 @@ public class UNOActivity extends EMNavigationDrawerActivity {
 
     private ProfileFragment profileFragment;
 
+    private boolean pressedBackOnce = false;
+    private FragmentManager fm;
+
+    private final String GAME_FRAGMENT = "game_fragment";
+    private final String PRE_GAME_LOBBY_FRAGMENT = "pre_game_lobby_fragment";
+
     public void setProfileFragment(ProfileFragment profileFragment) {
         this.profileFragment = profileFragment;
     }
 
-    public enum NavigationViews{
+    public enum NavigationView{
         Lobby,
         Profile,
         Logout
@@ -42,7 +52,7 @@ public class UNOActivity extends EMNavigationDrawerActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+//        setActivityIndicatorType(ActivityIndicatorFragment.ActivityIndicatorType.Dots);
         setNavigationViewMenu(R.menu.activity_uno_drawer);
         setNavigationViewItemBackgroundColor(R.color.drawer_item);
         EMModal.setModalAttributes(EMModal.RoundedModal.EMModalAnimType.GlideAndGrow, 10, R.color.colorLightGray, R.color.colorPrimaryDark, R.color.colorPrimaryDark, R.color.white);
@@ -51,6 +61,41 @@ public class UNOActivity extends EMNavigationDrawerActivity {
         requestFragmentChange(new LobbyFragment(), "lobby");
         setTitleText("UNO Lobby");
     }
+
+    @Override
+    public void onBackPressed(){
+        fm = (fm == null) ? getFragmentManager() : fm;
+        // confirm to exit
+        if(fm.getBackStackEntryCount() > 1) {
+
+            // check if in game
+            // if so then prompt modal
+            FragmentManager.BackStackEntry currFragment = fm.getBackStackEntryAt(fm.getBackStackEntryCount() - 1);
+
+            if(currFragment != null) {
+                if (currFragment.getBreadCrumbShortTitle() != null) {
+                    String title = currFragment.getBreadCrumbShortTitle().toString();
+
+                    if(title.equals(GAME_FRAGMENT)){
+                        showQuitConfirmationModal();
+                    }else if(title.equals(PRE_GAME_LOBBY_FRAGMENT)){
+                        showCancelChallengeConfirmationModal();
+                    }else{
+                        fm.popBackStack();
+                    }
+                }
+            }
+
+        }else{
+            if(pressedBackOnce){
+                this.moveTaskToBack(true);
+            }else{
+                Toast.makeText(this, "Press back again to exit", Toast.LENGTH_SHORT).show();
+                pressedBackOnce = true;
+            }
+        }
+    }
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -125,6 +170,37 @@ public class UNOActivity extends EMNavigationDrawerActivity {
             ((InputMethodManager)act.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow((act.getWindow().getDecorView().getApplicationWindowToken()), 0);
     }
 
+    public void handleNavigation(NavigationView navigationView){
+        switch(navigationView){
+            case Lobby:
+                requestFragmentChange(new LobbyFragment(), "lobby");
+                setTitleText("UNO Lobby");
+                break;
+        }
+    }
+
+    public void showQuitConfirmationModal() {
+        EMModal.showModal(this, EMModal.ModalType.Message, "Quit Game", "Are you sure you want to quit?", new Callback() {
+            @Override
+            public void callback(Object object) {
+                SocketService.get(UNOActivity.this).quitGame();
+                handleNavigation(UNOActivity.NavigationView.Lobby);
+            }
+        }, null);
+    }
+
+
+    public void showCancelChallengeConfirmationModal() {
+        EMModal.showModal(this, EMModal.ModalType.Message, "Cancel Challenge", "Are you sure you want to cancel this challenge?", new Callback() {
+            @Override
+            public void callback(Object object) {
+                // TODO:: cancel challenge
+                SocketService.get(UNOActivity.this).handleChallenge(UNOAppState.currChallengeId, SocketService.ChallengeResType.Cancel);
+                handleNavigation(UNOActivity.NavigationView.Lobby);
+            }
+        }, null);
+    }
+
     /*
     NOTES:
 
@@ -154,10 +230,18 @@ public class UNOActivity extends EMNavigationDrawerActivity {
     Pregame Lobby ( waiting for players to join )
     Game Screen
 
-
     TODO: Create the following views
 
     Help
+
+
+
+    TO LOG OUT OF FABRIC
+
+    CTRL + L (not CMD + L)
+
+
+
      */
 
 }

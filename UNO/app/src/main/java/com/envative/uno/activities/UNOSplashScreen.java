@@ -3,8 +3,10 @@ package com.envative.uno.activities;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.crashlytics.android.Crashlytics;
 import com.envative.uno.R;
 import com.envative.uno.comms.UNOUtil;
+import io.fabric.sdk.android.Fabric;
 
 
 /**
@@ -16,6 +18,7 @@ public class UNOSplashScreen extends android.app.Activity {
     protected void onCreate(Bundle savedInstanceState) {
         // TODO Auto-generated method stub
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_splash);
 
         Thread timerThread = new Thread(){

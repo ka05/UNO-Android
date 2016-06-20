@@ -2,8 +2,10 @@ package com.envative.uno.fragments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +18,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.envative.emoba.delegates.ActivityWithIndicator;
+import com.envative.emoba.delegates.Callback;
 import com.envative.emoba.fragments.EMBaseFragment;
 import com.envative.emoba.utils.EMDrawingUtils;
 import com.envative.emoba.widgets.EMModal;
@@ -24,6 +27,7 @@ import com.envative.uno.comms.SocketService;
 import com.envative.uno.comms.UNOAppState;
 import com.envative.uno.models.SocketDelegateType;
 import com.envative.uno.models.User;
+import com.envative.uno.widgets.RoundedImageView;
 
 import java.util.ArrayList;
 
@@ -54,6 +58,9 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
     }
 
     private void findViews(View v) {
+
+        fetchOnlineUserImages();
+
         inGameLegendCircleView = v.findViewById(R.id.inGameLegendCircleView);
         EMDrawingUtils.setDrawableLayerColor(inGameLegendCircleView.getBackground(), R.id.circle, getResources().getColor( R.color.challengeOrange) );
         availableLegendCircleView = v.findViewById(R.id.availableLegendCircleView);
@@ -70,6 +77,17 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
         lvOnlinePlayers.setAdapter(adapter); // set up ListView
         emptyListView = (TextView)v.findViewById(R.id.emptyListViewText);
         lvOnlinePlayers.setEmptyView(v.findViewById(R.id.emptyListViewText));
+    }
+
+    private void fetchOnlineUserImages() {
+        for(User user : UNOAppState.activeUsers){
+            user.handleSaveProfileImage(getActivity(), new Callback() {
+                @Override
+                public void callback(Object object) {
+                    if(adapter != null) adapter.notifyDataSetChanged();
+                }
+            });
+        }
     }
 
     public OnlineUsersAdapter getAdapter(){
@@ -120,6 +138,7 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
                 holder = new UserHolder();
                 holder.username = (TextView)row.findViewById(R.id.txtUsername);
                 holder.inAGameIndicator = (ImageView)row.findViewById(R.id.inGameIndicator);
+                holder.profileImage = (RoundedImageView)row.findViewById(R.id.ivUserProfileImage);
                 holder.selected = (CheckBox)row.findViewById(R.id.cbSelectedItem);
 
                 row.setTag(holder);
@@ -137,6 +156,12 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
             }else{
                 EMDrawingUtils.setDrawableLayerColor(holder.inAGameIndicator, R.id.circle, getResources().getColor(R.color.colorCardGreen));
             }
+
+            Log.d("Chall profileImgPath", ":" +user.profileImgPath);
+            if(!user.profileImgPath.equals("")){
+                holder.profileImage.setImageBitmap(BitmapFactory.decodeFile(user.profileImgPath));
+            }
+
 //            holder.inAGameIndicator.setVisibility(user.inAGame ? View.VISIBLE : View.INVISIBLE);
             holder.selected.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -157,6 +182,7 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
         class UserHolder {
             TextView username;
             ImageView inAGameIndicator;
+            RoundedImageView profileImage;
             CheckBox selected;
         }
     }

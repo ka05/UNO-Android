@@ -33,7 +33,7 @@ public class LoginActivity extends EMActivityWithIndicator {
         super.onCreate(savedInstanceState);
         initComponents();
 
-        SocketService.get(this); // initialize socket service
+        SocketService.get(this, true);// initialize socket service
         showLogin();
     }
 
@@ -47,7 +47,7 @@ public class LoginActivity extends EMActivityWithIndicator {
     public void onBackPressed(){
         fm = (fm == null) ? getFragmentManager() : fm;
         // confirm to exit
-        if(fm.getBackStackEntryCount() > 0) {
+        if(fm.getBackStackEntryCount() > 1) {
             fm.popBackStack();
         }else{
             if(pressedBackOnce){

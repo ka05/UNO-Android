@@ -35,7 +35,15 @@ public class ChatFragment extends EMBaseFragment implements View.OnClickListener
     private TextView emptyListView;
     private ChatMsgAdapter adapter;
 
-    private int chatRoomId = 1; // overwrite when in game
+
+    public enum ChatType{
+        Game,
+        Lobby
+    }
+
+    private ChatType chatType = ChatType.Lobby;
+
+    private String chatRoomId = "1"; // overwrite when in game
 
     @Nullable
     @Override
@@ -43,8 +51,12 @@ public class ChatFragment extends EMBaseFragment implements View.OnClickListener
         View v = inflater.inflate(R.layout.fragment_chat, container, false);
         findViews(v);
 
-        SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.Chat);
-        SocketService.get(getActivity()).getChat(chatRoomId +"");
+        if(chatType == ChatType.Game){
+            SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.InGameChat);
+        }else{
+            SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.Chat);
+        }
+        SocketService.get(getActivity()).getChat(chatRoomId + "");
         return v;
     }
 
@@ -65,7 +77,7 @@ public class ChatFragment extends EMBaseFragment implements View.OnClickListener
     public void onClick(View v) {
         if(v.getId() == R.id.btnSend){
             if(chatMsgEditText.getText().toString().trim().length() > 0){
-                SocketService.get(getActivity()).sendChat(chatMsgEditText.getText().toString().trim());
+                SocketService.get(getActivity()).sendChat(chatMsgEditText.getText().toString().trim(), chatRoomId + "");
                 chatMsgEditText.setText(""); // clear out after message sends
             }else{
                 EMModal.showModal(getActivity(), EMModal.ModalType.Warning, "Warning!", "Must enter text in input to send chat!");
@@ -78,7 +90,7 @@ public class ChatFragment extends EMBaseFragment implements View.OnClickListener
         return adapter;
     }
 
-    public void setChatRoomId(int chatRoomId) {
+    public void setChatRoomId(String chatRoomId) {
         this.chatRoomId = chatRoomId;
     }
 
@@ -137,5 +149,14 @@ public class ChatFragment extends EMBaseFragment implements View.OnClickListener
             TextView msg;
             TextView date;
         }
+    }
+
+
+    public ChatType getChatType() {
+        return chatType;
+    }
+
+    public void setChatType(ChatType chatType) {
+        this.chatType = chatType;
     }
 }

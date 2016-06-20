@@ -67,19 +67,41 @@
     </LinearLayout>
 
     <View
+        android:id="@+id/linearLayoutLegendDivider"
+        android:background="@drawable/black_white_gradient"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_below="@+id/linearLayoutLegend"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Please select anyone you would like to challenge to a game."
+        android:id="@+id/title_msg"
+        android:layout_below="@+id/linearLayoutLegendDivider"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/black"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="15dp" />
+
+    <View
+        android:id="@+id/divider2"
+        android:background="@color/colorLightGray"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/colorLightGray"
-        android:layout_below="@+id/linearLayoutLegend" />
+        android:layout_below="@+id/title_msg"/>
 
     <ListView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/lvOnlinePlayers"
         android:layout_gravity="center_horizontal"
-        android:layout_below="@+id/linearLayoutLegend"
-        android:layout_above="@+id/linearLayout3"
-        android:layout_marginBottom="10dp" />
+        android:layout_below="@+id/divider2"
+        android:layout_above="@+id/linearLayout3" />
 
     <TextView
         android:layout_width="match_parent"
@@ -89,7 +111,7 @@
         android:id="@+id/emptyListViewText"
         android:padding="10dp"
         android:layout_margin="5dp"
-        android:layout_below="@+id/linearLayoutLegend"
+        android:layout_below="@+id/divider2"
         android:gravity="center_vertical|center_horizontal"
         android:textSize="17sp"
         android:layout_gravity="center_horizontal"
@@ -102,6 +124,13 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:id="@+id/linearLayout3">
+
+        <View
+            android:id="@+id/divider"
+            android:background="@drawable/white_black_gradient"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:layout_above="@+id/btnSendChallenge"/>
 
         <Button
             android:layout_width="match_parent"
@@ -117,8 +146,10 @@
             android:layout_height="wrap_content"
             android:text="CANCEL"
             android:id="@+id/btnCancel"
-            android:background="@color/colorPrimaryDark"
+            android:background="@color/btnGameEnable"
             android:textColor="@color/white"
             android:textSize="20sp" />
     </LinearLayout>
+
+
 </RelativeLayout>

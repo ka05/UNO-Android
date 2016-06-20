@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import com.envative.emoba.utils.EMDrawingUtils;
@@ -59,6 +60,7 @@ public class ProfilePercentView extends View {
     private int backgroundCircleWidth = 28;
     private int pieceWidth = 28;
     private File centerBackgroundImageFile = null;
+    private boolean imgSetAlready = false;
 
     public ProfilePercentView (Context context) {
         super(context);
@@ -153,16 +155,33 @@ public class ProfilePercentView extends View {
             }
 
             if(centerBackgroundImageFile != null){
-                int imgWidth = width - (2*pieceWidth);
-                int startX = pieceWidth;
-                int startY = pieceWidth;
-                Bitmap icon = BitmapFactory.decodeFile(centerBackgroundImageFile.getPath());
-                int topBotPadding = (icon.getHeight() - (int)(imgWidth*2.5)) / 2;
-                int leftRightPadding = (icon.getWidth() - (int)(imgWidth*2.5)) / 2;
-                icon = Bitmap.createBitmap(icon, leftRightPadding, 0, icon.getHeight(), icon.getHeight());
-                icon = Bitmap.createScaledBitmap(icon, imgWidth, imgWidth, false);
-                icon = ExifUtil.rotateBitmap(centerBackgroundImageFile.getPath(), icon);
-                canvas.drawBitmap(EMDrawingUtils.getCircleBitmap( icon ), startX, startY, paint);
+//                if(!imgSetAlready){
+                    Log.d("image not set", "path: " + centerBackgroundImageFile.getPath());
+                    int imgWidth = width - (2*pieceWidth);
+                    int startX = pieceWidth;
+                    int startY = pieceWidth;
+                    Bitmap icon = BitmapFactory.decodeFile(centerBackgroundImageFile.getPath());
+
+                    if(icon != null){
+                        double imgWidthFactor = 2.5;
+                        int topBotPadding = (icon.getHeight() - (int)(imgWidth*2.5)) / 2;
+                        int leftRightPadding = (icon.getWidth() - (int)(imgWidth*2.5)) / 2;
+
+                        if(icon.getHeight() < imgWidth){
+                            imgWidthFactor = 1;
+                            leftRightPadding = 0;
+                        }
+
+                        Log.d("ProfilePercentView", "leftRightPadding: " + leftRightPadding + " icon.getHeight(): " + icon.getHeight() + " icon.getWidth(): " + icon.getWidth() + " imgWidth: " + imgWidth
+                        );
+                        icon = Bitmap.createBitmap(icon, leftRightPadding, 0, icon.getHeight(), icon.getHeight());
+                        icon = Bitmap.createScaledBitmap(icon, imgWidth, imgWidth, false);
+                        icon = ExifUtil.rotateBitmap(centerBackgroundImageFile.getPath(), icon);
+                        canvas.drawBitmap(EMDrawingUtils.getCircleBitmap( icon ), startX, startY, paint);
+
+                        imgSetAlready = true;
+                    }
+//                }
             }
 
             bgpaint.setColor(centerBackgroundColor);
@@ -311,6 +330,7 @@ public class ProfilePercentView extends View {
     }
 
     public void setCenterBackgroundImageFile(File file){
+        imgSetAlready = false;
         this.centerBackgroundImageFile = file;
     }
 

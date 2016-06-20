@@ -1,5 +1,7 @@
 package com.envative.uno.models;
 
+import android.util.Log;
+
 import com.envative.uno.comms.UNOAppState;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -20,9 +22,8 @@ public class UNOGame {
     public ArrayList<Player> players = new ArrayList<>();
     public ArrayList<Card> discardPile = new ArrayList<>();
 
-    public UNOGame(){
+    public UNOGame(){}
 
-    }
     public UNOGame(JsonObject gameData){
         winner = gameData.get("winner").getAsString();
         allPlayersInGame = gameData.get("allPlayersInGame").getAsBoolean();
@@ -33,8 +34,11 @@ public class UNOGame {
         for(JsonElement player : playersArr){
             String username = player.getAsJsonObject().get("username").getAsString();
 
+            Log.d("UNOGAME:", username + ":" + UNOAppState.currUser.username);
+
             // if player is current user set as currPlayer
             if(username.equals(UNOAppState.currUser.username)){
+                Log.d("UNOGAME:", "found currPlayer");
                 currPlayer = new Player(player.getAsJsonObject());
             }
             // not the current user add them to players array

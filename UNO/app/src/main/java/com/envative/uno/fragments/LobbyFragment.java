@@ -49,6 +49,7 @@ public class LobbyFragment extends EMBaseFragment implements View.OnClickListene
         chatFragmentContainer = (FrameLayout)v.findViewById(R.id.chatFragmentContainer);
 
         chatFragment = new ChatFragment();
+        chatFragment.setChatRoomId("1");
         sentChallengesFragment = new ChallengeFragment();
         sentChallengesFragment.setLobbyDelegate(this);
         sentChallengesFragment.setChallengeType(ChallengeFragment.ChallengeType.Sent);

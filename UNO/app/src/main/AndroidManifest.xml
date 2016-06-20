@@ -31,6 +31,9 @@
             android:windowSoftInputMode="stateAlwaysHidden|adjustPan"
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="portrait"/>
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="405313362352e3f48ec0c31f087595f06cc3b88f" />
     </application>
 
 </manifest>

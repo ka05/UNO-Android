@@ -59,9 +59,7 @@ public class PreGameLobbyFragment extends EMBaseFragment {
         btnCancelChallenge.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO:: cancel challenge
-                SocketService.get(getActivity()).handleChallenge(currChallenge.id, SocketService.ChallengeResType.Cancel);
-                getActivity().getFragmentManager().popBackStack(); // go back to lobby
+                ((UNOActivity)getActivity()).showCancelChallengeConfirmationModal();
             }
         });
     }
@@ -76,6 +74,7 @@ public class PreGameLobbyFragment extends EMBaseFragment {
     }
 
     public void setChallenge(Challenge currChallenge) {
+        UNOAppState.currChallengeId = currChallenge.id;
         this.currChallenge = currChallenge;
     }
 

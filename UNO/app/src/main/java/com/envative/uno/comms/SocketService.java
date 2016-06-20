@@ -3,10 +3,12 @@ package com.envative.uno.comms;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.envative.emoba.delegates.ActivityWithIndicator;
 import com.envative.uno.activities.LoginActivity;
 import com.envative.uno.activities.UNOActivity;
 import com.envative.uno.fragments.ChallengeFragment;
@@ -34,11 +36,14 @@ import com.google.gson.JsonPrimitive;
 
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by clay on 5/29/16.
@@ -58,8 +63,14 @@ public class SocketService {
     private Fragment gameDelegate;
     private Fragment challengeModalDelegate;
     private Fragment chatDelegate;
+    private Fragment inGameChatDelegate;
+
+    private Timer getGameByChallengeIdTimer;
+    private Timer getChallengesTimer;
+    private Timer checkPlayersInGameRoomTimer;
 
     private boolean loginFromSignupPage = false;
+    private boolean gameFragmentIsAttached = false;
 
     public boolean isLoginFromSignupPage() {
         return loginFromSignupPage;
@@ -86,13 +97,25 @@ public class SocketService {
         initSocketConnection();
     }
 
-    public static SocketService get(Context context) {
+    public static SocketService get(Context context){
+        return get(context, false);
+    }
+
+    public static SocketService get(Context context, boolean reinitialize) {
         if (instance == null) {
             instance = new SocketService(context.getApplicationContext());
         }
-
+        if(reinitialize){
+            instance.reinitializeSocketConnection();
+        }
         instance.context = context;
         return instance;
+    }
+
+    private void reinitializeSocketConnection() {
+        loginSocket = null;
+        gameSocket = null;
+        initSocketConnection();
     }
 
     //region main socket handling
@@ -113,7 +136,6 @@ public class SocketService {
             }
         }
 
-
         if(!loginSocket.connected()){
             Log.d("loginSocket ", "not connected yet");
             Log.d("gameSocket ", "not connected yet");
@@ -123,6 +145,7 @@ public class SocketService {
             loginSocket.on("validateLogin", onValidateLogin);
             loginSocket.on("addUser", onAddUser);
             loginSocket.on("validateToken", onValidateToken);
+            loginSocket.on("uploadProfileImg", onUploadProfileImg);
 
             // Lobby Calls
             loginSocket.on("handleChallenge", onHandleChallenge);
@@ -157,6 +180,9 @@ public class SocketService {
             gameSocket.on("setPlayerInGame", onSetPlayerInGame);
             gameSocket.on("validateMove", onValidateMove);
         }
+
+        getGameByChallengeIdTimer = new Timer();
+        getChallengesTimer = new Timer();
     }
 
     /**
@@ -170,6 +196,7 @@ public class SocketService {
         loginSocket.off("validateLogin", onValidateLogin);
         loginSocket.off("addUser", onAddUser);
         loginSocket.off("validateToken", onValidateToken);
+        loginSocket.off("uploadProfileImg", onUploadProfileImg);
 
         // Lobby Calls
         loginSocket.off("handleChallenge", onHandleChallenge);
@@ -205,6 +232,50 @@ public class SocketService {
         loginSocket.emit("validateLogin", credentials);
     }
 
+    public void uploadProfileImg(String path){
+        String profileImg = path;
+        if(!profileImg.equals("")){
+            JsonObject imageUploadPacket = new JsonObject();
+            imageUploadPacket.add("userId", new JsonPrimitive( UNOAppState.currUser.id ));
+
+            // build image object
+            JsonObject imageObj = new JsonObject();
+            Log.d("imagepath", profileImg);
+            Bitmap bm = BitmapFactory.decodeFile(profileImg);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bm.compress(Bitmap.CompressFormat.JPEG, 100, baos); //bm is the bitmap object
+            byte[] byteArrayImage = baos.toByteArray();
+            String encodedImage = Base64.encodeToString(byteArrayImage, Base64.DEFAULT);
+
+            imageObj.add("originalFilename", new JsonPrimitive( UNOAppState.currUser.username + "_profile_img.jpeg" ));
+            imageObj.add("encodedImage", new JsonPrimitive( encodedImage ));
+            imageUploadPacket.add("image", imageObj);
+
+            loginSocket.emit("uploadProfileImg", imageUploadPacket);
+            ((UNOActivity)context).showActivityIndicator();
+        }
+    }
+
+    private Emitter.Listener onUploadProfileImg = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            ((Activity)context).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d("onUploadProfileImg", "args: " + args[0]);
+                    JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
+                    String success = data.get("msg").getAsString();
+                    if(success.equals("success")){
+                        Toast.makeText(context, "Image Upload success", Toast.LENGTH_LONG).show();
+                    }else{
+                        Log.d(TAG, "ERROR: onUploadProfileImg error!");
+                    }
+                    ((UNOActivity)context).hideActivityIndicator();
+                }
+            });
+        }
+    };
+
     private Emitter.Listener onValidateLogin = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
@@ -215,22 +286,25 @@ public class SocketService {
                     JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
                     boolean success = data.get("valid").getAsBoolean();
                     if(success){
-                        UNOAppState.currUser = new Gson().fromJson(data.get("user").toString(), User.class);
+                        UNOAppState.currUser = new User(data.get("user").getAsJsonObject(), context);
 
                         UNOUtil.get(context).setLoggedIn();
                         Toast.makeText(context, "Login success", Toast.LENGTH_LONG).show();
                     }
                     if(loginFromSignupPage){
-                        ((LoginActivity)signupDelegate.getActivity()).hideActivityIndicator();
                         ((SignupFragment)signupDelegate).loginCallback.callback(success);
                     }else{
-                        ((LoginActivity)loginDelegate.getActivity()).hideActivityIndicator();
                         ((LoginFragment)loginDelegate).attemptLoginCallback.callback(success);
                     }
+                    ((LoginActivity)context).hideActivityIndicator();
                 }
             });
         }
     };
+
+    public void updateGameFragmentAttached(boolean isAttached){
+        this.gameFragmentIsAttached = isAttached;
+    }
 
     private Emitter.Listener onConnection = new Emitter.Listener() {
         @Override
@@ -263,7 +337,7 @@ public class SocketService {
                         UNOAppState.currUser = new Gson().fromJson(data.get("user").toString(), User.class);
                     }
                     ((SignupFragment)signupDelegate).attemptSignupCallback.callback(message);
-                    ((LoginActivity)signupDelegate.getActivity()).hideActivityIndicator();
+                    ((LoginActivity)context).hideActivityIndicator();
                 }
             });
         }
@@ -330,10 +404,11 @@ public class SocketService {
                 public void run() {
                     Log.d("onChallengeUno", "args: " + args[0]);
                     JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
-                    String success = data.get("msg").getAsString();
-                    if(success.equals("success")){
+                    String message = data.get("msg").getAsString();
+                    if(message.equals("success")){
                         setCurrGame(data.get("data").getAsJsonObject());
                     }else{
+                        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
                         Log.d(TAG, "ERROR: sayUno error!");
                     }
 
@@ -380,6 +455,8 @@ public class SocketService {
     };
 
     public void quitGame(){
+        updateGameFragmentAttached(false);
+        gameDelegate = null;
         gameSocket.emit("quitGame", buildBasicGamePacket());
     }
 
@@ -395,12 +472,9 @@ public class SocketService {
                     if(success.equals("success")){
                         UNOAppState.inGameOrGameLobby = false; // no longer in game or game lobby
 
-//                        getCurrGameInterval?.invalidate() // clear get game interval
-//                        getCurrGameChatInterval?.invalidate() // clear get game chat interval
                     }else{
                         Log.d(TAG, "ERROR: sayUno error!");
                     }
-
                 }
             });
         }
@@ -410,7 +484,6 @@ public class SocketService {
     public void getGameByChallengeId(){
         gameSocket.emit("getGameByChallengeId", buildBasicChallengePacket());
     }
-
 
     private Emitter.Listener onGetGameByChallengeId = new Emitter.Listener() {
         @Override
@@ -422,6 +495,10 @@ public class SocketService {
                     JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
                     String success = data.get("msg").getAsString();
                     if(success.equals("success")){
+                        if(getGameByChallengeIdTimer != null){
+                            getGameByChallengeIdTimer.cancel();
+                            getGameByChallengeIdTimer = null;
+                        }
                         setPlayerInGame(UNOAppState.currChallengeId);
                         UNOAppState.currGameId = data.get("data").getAsJsonObject().get("_id").getAsString();
                         setCurrGame(data.get("data").getAsJsonObject());
@@ -429,19 +506,23 @@ public class SocketService {
                         ((PreGameLobbyFragment)preGameLobbyDelegate).showGame(); // opens game screen
                     }else{
                         Log.d(TAG, "ERROR: onGetGameByChallengeId error!");
-                        getGameByChallengeId();
+                        // Interval to get Game By ChallengeID
+                        getGameByChallengeIdTimer = new Timer();
+                        getGameByChallengeIdTimer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                getGameByChallengeId();
+                            }
+                        }, 3000);
                     }
                 }
             });
         }
     };
 
-
-
     public void getCurrGame(){
         gameSocket.emit("getGameByGameId", buildBasicGamePacket());
     }
-
 
     private Emitter.Listener onGetGameByGameId = new Emitter.Listener() {
         @Override
@@ -476,18 +557,18 @@ public class SocketService {
                         if(allPlayersInGame){
                             // if something has changed
                             if(UNOAppState.currGameJSON != tempGameJSON){
-
+                                Log.d(TAG, "UNOAppState.currGame: " + (UNOAppState.currGame == null) + ":" + (UNOAppState.currGame.currPlayer == null) );
                                 // if its not my turn update stuff so i know whats going on
                                 if( ( !UNOAppState.currGame.currPlayer.isMyTurn ) ||
                                         ( UNOAppState.currGame.currPlayer.hand.size() == 0 ) ){
-
+                                    Log.d(TAG, "onGetGameByGameId : not my turn");
                                     setCurrGame(tempGameJSON);
 
                                     // if there is a winner
                                     checkWinner(tempGame);
                                 }else{
                                     // it is my turn just check for if someone said uno
-
+                                    Log.d(TAG, "onGetGameByGameId : is my turn - did someone say uno? " + (tempGame.currPlayer.hand.size() != UNOAppState.currGame.currPlayer.hand.size()));
                                     // update my hand if the length differs from before
                                     if(tempGame.currPlayer.hand.size() != UNOAppState.currGame.currPlayer.hand.size()){
                                         setCurrGame(tempGameJSON);
@@ -509,10 +590,11 @@ public class SocketService {
     };
 
     public void setCurrGame(JsonObject gameObj){
+        Log.d(TAG, "setCurrGame : gameObj:");
         UNOAppState.currGameJSON = gameObj;
         UNOAppState.currGame = new UNOGame(gameObj); // re initialize
         if(gameDelegate != null){
-            if(!gameDelegate.isDetached()){
+            if(gameFragmentIsAttached){
                 ((GameFragment)gameDelegate).updateGameView();
             }
         }
@@ -520,12 +602,20 @@ public class SocketService {
 
     public void checkWinner(UNOGame newGame){
         Log.d("checkWinner","winner: " + newGame.winner);
-        if(newGame.winner.equals("")){
-//            getCurrGameInterval.invalidate() // clear get game interval
-//            getCurrGameChatInterval.invalidate() // clear get game chat interval
+        if(!newGame.winner.equals("")){
             UNOAppState.inGameOrGameLobby = false;
             UNOAppState.currGame = new UNOGame(); // reset game
-//            gameVC!.performSegueWithIdentifier("game-to-lobby", sender: gameVC!)
+
+            Toast.makeText(context, newGame.winner + " won UNO!", Toast.LENGTH_LONG).show();
+            final Timer gameFinishedTimer = new Timer();
+            gameFinishedTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    gameDelegate.getActivity().getFragmentManager().popBackStack();
+                    gameDelegate.getActivity().getFragmentManager().popBackStack();
+                    gameFinishedTimer.cancel();
+                }
+            }, Toast.LENGTH_LONG);
         }
     }
 
@@ -614,7 +704,7 @@ public class SocketService {
             ((Activity)context).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d("onNotifyNeedsToUpdateGame", "args: " + args[0]);
+                    Log.d(TAG, "onNotifyNeedsToUpdateGame : args: " + args[0]);
                     JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
                     String success = data.get("msg").getAsString();
                     if(success.equals("true")){
@@ -638,10 +728,10 @@ public class SocketService {
         gameSocket.emit("validateMove", validateMovePacket);
     }
 
-    public void sendChat(String msg){
+    public void sendChat(String msg, String chatRoomId){
         JsonObject msgPacket = new JsonObject();
         msgPacket.add("senderId", new JsonPrimitive( UNOAppState.currUser.id ));
-        msgPacket.add("roomId", new JsonPrimitive( "1" ));
+        msgPacket.add("roomId", new JsonPrimitive( chatRoomId ));
         msgPacket.add("message", new JsonPrimitive( msg ));
 
         loginSocket.emit("chatMsg", msgPacket);
@@ -695,7 +785,7 @@ public class SocketService {
                             ((LobbyFragment)lobbyDelegate).getChatFragment().getAdapter().notifyDataSetChanged();
                         }
                     }else{
-                        Log.d(TAG, "ERROR: onCheckPlayersInGameRoom error!");
+                        Log.d(TAG, "ERROR: onGetChat error!");
                     }
                 }
             });
@@ -725,13 +815,13 @@ public class SocketService {
 
                             for(JsonElement user : data.get("data").getAsJsonArray()) {
                                 if(!user.getAsJsonObject().get("username").getAsString().equals(UNOAppState.currUser.username)){
-                                    UNOAppState.activeUsers.add(new User( user.getAsJsonObject() ));
+                                    UNOAppState.activeUsers.add(new User( user.getAsJsonObject(), context ));
                                 }
                             }
                         }
                         ((ChallengeModalFragment)challengeModalDelegate).getAdapter().notifyDataSetChanged();
                     }else{
-                        Log.d(TAG, "ERROR: onCheckPlayersInGameRoom error!");
+                        Log.d(TAG, "ERROR: onGetOnlineUsers error!");
                     }
                 }
             });
@@ -739,6 +829,7 @@ public class SocketService {
     };
 
     public void getSentChallenges(){
+        Log.d(TAG, "getSentChallenges");
         if(UNOAppState.currUser != null){
             JsonObject getSentChallengesPacket = new JsonObject();
             getSentChallengesPacket.add("id", new JsonPrimitive( UNOAppState.currUser.id ));
@@ -753,14 +844,14 @@ public class SocketService {
             ((Activity)context).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-//                    Log.d("onGetSentChallenges", "args: " + args[0]);
+                    Log.d("onGetSentChallenges", "args: " + args[0]);
                     JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
                     String success = "";
                     success = data.get("msg").getAsString();
                     if(success.equals("success")){
                         popChallenges(data.get("data").getAsJsonArray(), "s");
                     }else{
-                        Log.d(TAG, "ERROR: onCheckPlayersInGameRoom error!");
+                        Log.d(TAG, "ERROR: onGetSentChallenges error!");
                     }
                 }
             });
@@ -768,6 +859,7 @@ public class SocketService {
     };
 
     public void getReceivedChallenges(){
+        Log.d(TAG, "getReceivedChallenges");
         if(UNOAppState.currUser != null) {
             JsonObject getReceivedChallengePacket = new JsonObject();
             getReceivedChallengePacket.add("id", new JsonPrimitive(UNOAppState.currUser.id));
@@ -782,14 +874,14 @@ public class SocketService {
             ((Activity)context).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-//                    Log.d("onGetReceivedChallenges", "args: " + args[0]);
+                    Log.d("onGetReceivedChallenges", "args: " + args[0]);
                     JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
                     String success = "";
                     success = data.get("msg").getAsString();
                     if(success.equals("success")){
                         popChallenges(data.get("data").getAsJsonArray(), "r");
                     }else{
-                        Log.d(TAG, "ERROR: onCheckPlayersInGameRoom error!");
+                        Log.d(TAG, "ERROR: onGetReceivedChallenges error!");
                     }
                 }
             });
@@ -840,7 +932,7 @@ public class SocketService {
                             getGameByChallengeId();
                         }
                     }else{
-                        Log.d(TAG, "ERROR: onCheckPlayersInGameRoom error!");
+                        Log.d(TAG, "ERROR: onGetChallenge error!");
                         getChallenge(UNOAppState.currUserIsChallenger);
                     }
                 }
@@ -902,10 +994,21 @@ public class SocketService {
                                 setCurrGame(data.get("data").getAsJsonObject());
                             }
                         }
+                        if(checkPlayersInGameRoomTimer != null){
+                            checkPlayersInGameRoomTimer.cancel();
+                            checkPlayersInGameRoomTimer = null;
+                        }
                         ((PreGameLobbyFragment)preGameLobbyDelegate).showGame(); // opens game screen
                     }else{
                         Log.d(TAG, "ERROR: onCheckPlayersInGameRoom error!");
-                        checkPlayersInGameRoom();
+
+                        checkPlayersInGameRoomTimer = new Timer();
+                        checkPlayersInGameRoomTimer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                checkPlayersInGameRoom();
+                            }
+                        }, 1000);
                     }
                 }
             });
@@ -918,15 +1021,24 @@ public class SocketService {
             ((Activity)context).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d("onNotifyNeedsToUpdate", "args: " + args[0]);
+                    Log.d(TAG, "onNotifyNeedsToUpdateChallenges : args: " + args[0]);
                     JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
                     String success = "";
                     success = data.get("msg").getAsString();
                     if(success.equals("true")){
                         // go to game via segue
                         // TODO: call both getchallenges
+                        getChallengesTimer = new Timer();
+                        getChallengesTimer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                getSentChallenges();
+                                getReceivedChallenges();
+                                getChallengesTimer.cancel();
+                                getChallengesTimer = null;
+                            }
+                        }, 1000);
                         getSentChallenges();
-                        getReceivedChallenges();
                     }else{
                         Log.d(TAG, "ERROR: onNotifyNeedsToUpdateChallenges error!");
                         checkPlayersInGameRoom();
@@ -1024,7 +1136,6 @@ public class SocketService {
                     }
                     ((UNOActivity)context).hideActivityIndicator();
                     challengeModalDelegate.getActivity().getFragmentManager().popBackStack();
-                    ((ActivityWithIndicator)challengeModalDelegate.getActivity()).hideActivityIndicator();
                 }
             });
         }
@@ -1172,6 +1283,9 @@ public class SocketService {
                 break;
             case Chat:
                 this.chatDelegate = delegate;
+                break;
+            case InGameChat:
+                this.inGameChatDelegate = delegate;
                 break;
             case ChallengeModal:
                 this.challengeModalDelegate = delegate;

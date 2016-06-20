@@ -3,11 +3,14 @@ package com.envative.uno.fragments;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.envative.emoba.delegates.Callback;
@@ -87,7 +90,18 @@ public class SignupFragment extends EMBaseFragment implements View.OnClickListen
         emailEditText = (EditText)v.findViewById(R.id.emailEditText);
         usernameEditText = (EditText)v.findViewById(R.id.usernameEditText);
         passwordEditText = (EditText)v.findViewById(R.id.passwordEditText);
+
         confirmPasswordEditText = (EditText)v.findViewById(R.id.confirmPasswordEditText);
+        confirmPasswordEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if ((actionId & EditorInfo.IME_MASK_ACTION) == EditorInfo.IME_ACTION_DONE) {
+                    attemptSignup();
+                    return true;
+                }
+                return false;
+            }
+        });
 
         btnSignup = (Button)v.findViewById(R.id.btnSignup);
         btnSignup.setOnClickListener(this);

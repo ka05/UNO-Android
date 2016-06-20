@@ -2,8 +2,10 @@ package com.envative.uno.fragments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.BottomSheetBehavior;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,15 +19,19 @@ import android.widget.Toast;
 
 import com.envative.emoba.delegates.Callback;
 import com.envative.emoba.fragments.EMBaseFragment;
+import com.envative.emoba.utils.EMDrawingUtils;
 import com.envative.emoba.widgets.EMModal;
 import com.envative.uno.R;
 import com.envative.uno.activities.UNOActivity;
 import com.envative.uno.comms.SocketService;
 import com.envative.uno.comms.UNOAppState;
+import com.envative.uno.comms.UNOUtil;
 import com.envative.uno.models.Card;
 import com.envative.uno.models.Player;
 import com.envative.uno.models.SocketDelegateType;
+import com.envative.uno.widgets.RoundedImageView;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -46,11 +52,23 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
     private Button btnChallenge;
     private Button btnQuit;
     private Button btnHelp;
+    private Button btnChat;
 
     private TextView txtPlayerUsername; // for current player usernam - highlight when active
+    private RoundedImageView ivCurrPlayer;
     private ImageView btnDeck;
     private ImageView ivCurrGameCard;
     private ImageView ivPrevGameCard;
+
+    private BottomSheetBehavior bsWildCardColorPicker;
+    private BottomSheetBehavior bsInGameChat;
+
+    private LinearLayout chatFragmentContainer;
+    private ChatFragment chatFragment;
+
+    private int activeGreenColor;
+    private int inactiveBlackColor;
+
 
     public enum WildCardColors{
         Red("red"),
@@ -73,19 +91,52 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
 
         SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.Game);
         ((UNOActivity)getActivity()).setTitleText("UNO Game");
+
         return v;
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        Activity a;
+        if (context instanceof Activity){
+            a=(Activity) context;
+        }
+        SocketService.get(getActivity()).updateGameFragmentAttached(true);
+    }
+
     private void findViews(View v) {
-//        gvPlayers = (GridView)v.findViewById(R.id.gvPlayers);
-//        gvPlayerHand = (GridView)v.findViewById(R.id.gvPlayerHand);
+
+        View wildCardColorPickerView = v.findViewById(R.id.bsWildCardColorPicker);
+        bsWildCardColorPicker = BottomSheetBehavior.from(wildCardColorPickerView);
+        View inGameChatView = v.findViewById(R.id.bsInGameChat);
+        bsInGameChat = BottomSheetBehavior.from(inGameChatView);
+
+        chatFragmentContainer = (LinearLayout)v.findViewById(R.id.chatFragmentContainer);
+        chatFragment = new ChatFragment();
+        chatFragment.setChatRoomId(UNOAppState.currGameId);
+        chatFragment.setChatType(ChatFragment.ChatType.Game);
 
         llPlayers = (LinearLayout)v.findViewById(R.id.llPlayers);
         llPlayerHand = (LinearLayout)v.findViewById(R.id.llPlayerHand);
+        ivCurrPlayer = (RoundedImageView)v.findViewById(R.id.ivCurrPlayer);
+
+        //TODO : fix profile Image
+        String profileImgPath = UNOAppState.currUser.profileImgPath;
+        if(!profileImgPath.equals("")){
+            ivCurrPlayer.setImageBitmap(BitmapFactory.decodeFile(profileImgPath));
+        }else{
+
+        }
+
+        getActivity().getFragmentManager().beginTransaction().replace(R.id.chatFragmentContainer, chatFragment).commit();
 
         //TODO: setup grid views
-        playerHandGridViewAdapter = new PlayerHandGridViewAdapter(getActivity(), R.layout.item_hand_card, UNOAppState.currGame.currPlayer.hand);
-        playersGridViewAdapter = new PlayersGridViewAdapter(getActivity(), R.layout.item_player, UNOAppState.currGame.players);
+//        gvPlayers = (GridView)v.findViewById(R.id.gvPlayers);
+//        gvPlayerHand = (GridView)v.findViewById(R.id.gvPlayerHand);
+
+//        playerHandGridViewAdapter = new PlayerHandGridViewAdapter(getActivity(), R.layout.item_hand_card, UNOAppState.currGame.currPlayer.hand);
+//        playersGridViewAdapter = new PlayersGridViewAdapter(getActivity(), R.layout.item_player, UNOAppState.currGame.players);
 
 //        gvPlayers.setAdapter(playersGridViewAdapter);
 //        gvPlayerHand.setAdapter(playerHandGridViewAdapter);
@@ -96,6 +147,8 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
 //                                                    // validate move with this card
 //                                                }
 //                                            });
+        btnChat = (Button)v.findViewById(R.id.btnChat);
+        btnChat.setOnClickListener(this);
         btnSayUno = (Button)v.findViewById(R.id.btnSayUno);
         btnSayUno.setOnClickListener(this);
         btnChallenge = (Button)v.findViewById(R.id.btnChallenge);
@@ -128,7 +181,7 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
                 SocketService.get(getActivity()).challengeUno();
                 break;
             case R.id.btnQuit:
-                showQuitConfirmationModal();
+                ((UNOActivity)getActivity()).showQuitConfirmationModal();
                 break;
             case R.id.btnHelp:
                 showHelp();
@@ -136,19 +189,13 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
             case R.id.btnDeck:
                 SocketService.get(getActivity()).drawCard();
                 break;
+            case R.id.btnChat:
+                bsInGameChat.setState(BottomSheetBehavior.STATE_EXPANDED);
+                break;
         }
     }
 
-    private void showQuitConfirmationModal() {
-        EMModal.showModal(getActivity(), EMModal.ModalType.Message, "Quit Game", "Are you sure you want to quit?", new Callback() {
-            @Override
-            public void callback(Object object) {
-                SocketService.get(getActivity()).quitGame();
-                getActivity().getFragmentManager().popBackStack(); // back to pregame lobby
-                getActivity().getFragmentManager().popBackStack(); // back to lobby
-            }
-        }, null);
-    }
+
 
     private void sayUno() {
         if(UNOAppState.currGame.currPlayer.hand.size() <= 2){
@@ -169,23 +216,33 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
         }
     }
 
-    private View initPlayerView(Player player) {
+    private View initPlayerView(final Player player) {
         View view = getActivity().getLayoutInflater().inflate(R.layout.item_player, null);
 
         TextView username = (TextView) view.findViewById(R.id.txtUsername);
         TextView calledUno = (TextView) view.findViewById(R.id.txtUno);
         TextView cardCount = (TextView) view.findViewById(R.id.txtNumCards);
-        ImageView playerImage = (ImageView) view.findViewById(R.id.ivPlayer);
+        final RoundedImageView playerImage = (RoundedImageView) view.findViewById(R.id.ivPlayer);
 
         username.setText(player.username);
         playerImage.setImageResource(R.drawable.profile_img);
 
+        checkImageExists(player, new Callback() {
+            @Override
+            public void callback(Object object) {
+                // update player image path
+                playerImage.setImageBitmap(BitmapFactory.decodeFile(player.profileImgPath));
+            }
+        });
+
         cardCount.setText(player.cardCount + "");
 
         if(player.isMyTurn){
-            username.setBackgroundColor(getResources().getColor( R.color.colorCardGreen ));
+            EMDrawingUtils.setDrawableLayerColor(username.getBackground(), com.envative.emoba.R.id.background, activeGreenColor);
+//            username.setBackgroundColor(getResources().getColor( R.color.colorCardGreen ));
         }else{
-            username.setBackgroundColor(getResources().getColor( R.color.black ));
+            EMDrawingUtils.setDrawableLayerColor(username.getBackground(), com.envative.emoba.R.id.background, inactiveBlackColor);
+//            username.setBackgroundColor(getResources().getColor( R.color.black ));
         }
 
         if(player.calledUno){
@@ -309,31 +366,47 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
     private void setPlayerUsernameActive(){
         // if its the curr players turn highlight background
         if(UNOAppState.currGame.currPlayer.isMyTurn){
-            txtPlayerUsername.setBackgroundColor(getResources().getColor( R.color.colorCardGreen ));
+            EMDrawingUtils.setDrawableLayerColor(txtPlayerUsername.getBackground(), com.envative.emoba.R.id.background, activeGreenColor);
+//            txtPlayerUsername.setBackgroundColor(getResources().getColor( R.color.colorCardGreen ));
         }else{
-            txtPlayerUsername.setBackgroundColor(getResources().getColor( R.color.black ));
+            EMDrawingUtils.setDrawableLayerColor(txtPlayerUsername.getBackground(), com.envative.emoba.R.id.background, inactiveBlackColor);
+//            txtPlayerUsername.setBackgroundColor(getResources().getColor( R.color.black ));
         }
     }
 
 
     public void updateGameView(){
-
         UNOAppState.initCardNames();
+        activeGreenColor = getResources().getColor( R.color.colorCardGreen );
+        inactiveBlackColor = getResources().getColor( R.color.transparent_black );
 
         setPlayerUsernameActive();
 
         // new game has been fetched update entire view
         txtPlayerUsername.setText(UNOAppState.currGame.currPlayer.username);
         int discardPileSize = UNOAppState.currGame.discardPile.size();
-        setCurrGameCard(UNOAppState.currGame.discardPile.get(discardPileSize-1).svgName);
-
+        if(discardPileSize >= 1) {
+            setCurrGameCard(UNOAppState.currGame.discardPile.get(discardPileSize - 1).svgName);
+        }
         // if there is more than 1 card in the discard pile then there was a previous card
         if(discardPileSize > 1){
-            setPrevGameCard(UNOAppState.currGame.discardPile.get(discardPileSize-1).svgName);
+            setPrevGameCard(UNOAppState.currGame.discardPile.get(discardPileSize-2).svgName);
         }
 
         updatePlayersView();
         updatePlayerHandView();
+    }
+
+
+    private void checkImageExists(Player player, Callback callback){
+        File imageFile = new File(player.profileImgPath);
+
+        // if the file doesnt exist save it
+        if(!imageFile.exists() ) {
+            UNOUtil.get(getActivity()).saveImage(getActivity(), player.profileImgUrl, callback);
+        }else{
+            callback.callback(null);
+        }
     }
 
 
