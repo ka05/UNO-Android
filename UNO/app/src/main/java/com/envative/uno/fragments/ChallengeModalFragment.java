@@ -2,6 +2,7 @@ package com.envative.uno.fragments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -13,12 +14,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.envative.emoba.delegates.ActivityWithIndicator;
-import com.envative.emoba.delegates.Callback;
 import com.envative.emoba.fragments.EMBaseFragment;
 import com.envative.emoba.utils.EMDrawingUtils;
 import com.envative.emoba.widgets.EMModal;
@@ -52,14 +51,22 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
         View v = inflater.inflate(R.layout.fragment_challenge_modal, container, false);
         findViews(v);
 
-        SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.ChallengeModal);
-        SocketService.get(getActivity()).getOnlineUsers();
         return v;
     }
 
-    private void findViews(View v) {
+    @Override
+    public void onResume(){
+        super.onResume();
+        SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.ChallengeModal);
+    }
 
-        fetchOnlineUserImages();
+    @Override
+    public void onPause(){
+        super.onPause();
+        SocketService.get(getActivity()).setDelegate(null, SocketDelegateType.ChallengeModal); // remove delegate
+    }
+
+    private void findViews(View v) {
 
         inGameLegendCircleView = v.findViewById(R.id.inGameLegendCircleView);
         EMDrawingUtils.setDrawableLayerColor(inGameLegendCircleView.getBackground(), R.id.circle, getResources().getColor( R.color.challengeOrange) );
@@ -79,16 +86,6 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
         lvOnlinePlayers.setEmptyView(v.findViewById(R.id.emptyListViewText));
     }
 
-    private void fetchOnlineUserImages() {
-        for(User user : UNOAppState.activeUsers){
-            user.handleSaveProfileImage(getActivity(), new Callback() {
-                @Override
-                public void callback(Object object) {
-                    if(adapter != null) adapter.notifyDataSetChanged();
-                }
-            });
-        }
-    }
 
     public OnlineUsersAdapter getAdapter(){
         return adapter;
@@ -137,7 +134,6 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
 
                 holder = new UserHolder();
                 holder.username = (TextView)row.findViewById(R.id.txtUsername);
-                holder.inAGameIndicator = (ImageView)row.findViewById(R.id.inGameIndicator);
                 holder.profileImage = (RoundedImageView)row.findViewById(R.id.ivUserProfileImage);
                 holder.selected = (CheckBox)row.findViewById(R.id.cbSelectedItem);
 
@@ -147,22 +143,22 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
             }
 
             final User user = data.get(position);
-
-            // TODO: handle formatting for these
             holder.username.setText(user.username);
 
             if(user.inAGame){
-                EMDrawingUtils.setDrawableLayerColor(holder.inAGameIndicator, R.id.circle, getResources().getColor(R.color.challengeOrange));
+                holder.profileImage.setColor(getResources().getColor(R.color.challengeOrange));
             }else{
-                EMDrawingUtils.setDrawableLayerColor(holder.inAGameIndicator, R.id.circle, getResources().getColor(R.color.colorCardGreen));
+                holder.profileImage.setColor(getResources().getColor(R.color.colorCardGreen));
             }
 
             Log.d("Chall profileImgPath", ":" +user.profileImgPath);
             if(!user.profileImgPath.equals("")){
-                holder.profileImage.setImageBitmap(BitmapFactory.decodeFile(user.profileImgPath));
+                Bitmap b = BitmapFactory.decodeFile(user.profileImgPath);
+                // if bitmap is null then use the default one
+                b = (b != null) ? b : BitmapFactory.decodeResource(getResources(), R.drawable.user);
+                holder.profileImage.setImageBitmap(b);
             }
 
-//            holder.inAGameIndicator.setVisibility(user.inAGame ? View.VISIBLE : View.INVISIBLE);
             holder.selected.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -181,7 +177,6 @@ public class ChallengeModalFragment extends EMBaseFragment implements View.OnCli
 
         class UserHolder {
             TextView username;
-            ImageView inAGameIndicator;
             RoundedImageView profileImage;
             CheckBox selected;
         }

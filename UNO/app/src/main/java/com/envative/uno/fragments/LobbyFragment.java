@@ -39,6 +39,7 @@ public class LobbyFragment extends EMBaseFragment implements View.OnClickListene
         findViews(v);
 
         SocketService.get(getActivity()).setDelegate(this, SocketDelegateType.Lobby);
+        SocketService.get(getActivity()).getOnlineUsers();
         return v;
     }
 

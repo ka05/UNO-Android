@@ -3,15 +3,17 @@ package com.envative.uno.widgets;
 /**
  * Created by clay on 6/12/16.
  */
+
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.os.Build;
+import android.util.Log;
+
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
-import android.graphics.Bitmap;
-import android.graphics.Matrix;
-import android.os.Build;
 
 public class ExifUtil {
     /**
@@ -21,8 +23,15 @@ public class ExifUtil {
         try {
             int orientation = getExifOrientation(src);
 
+            Log.d("orientation","orientation" + orientation);
             if (orientation == 1) {
+                Log.d("return","r");
                 return bitmap;
+            }
+
+            // handles my case
+            if(orientation == 0){
+                orientation = 8;
             }
 
             Matrix matrix = new Matrix();

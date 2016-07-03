@@ -155,6 +155,7 @@ public class ProfilePercentView extends View {
             }
 
             if(centerBackgroundImageFile != null){
+                // TODO: fixme
 //                if(!imgSetAlready){
                     Log.d("image not set", "path: " + centerBackgroundImageFile.getPath());
                     int imgWidth = width - (2*pieceWidth);
@@ -164,8 +165,8 @@ public class ProfilePercentView extends View {
 
                     if(icon != null){
                         double imgWidthFactor = 2.5;
-                        int topBotPadding = (icon.getHeight() - (int)(imgWidth*2.5)) / 2;
-                        int leftRightPadding = (icon.getWidth() - (int)(imgWidth*2.5)) / 2;
+                        int topBotPadding = (icon.getHeight() - (int)(imgWidth)) / 2;
+                        int leftRightPadding = (icon.getWidth() - (int)(imgWidth)) / 2;
 
                         if(icon.getHeight() < imgWidth){
                             imgWidthFactor = 1;
@@ -174,9 +175,9 @@ public class ProfilePercentView extends View {
 
                         Log.d("ProfilePercentView", "leftRightPadding: " + leftRightPadding + " icon.getHeight(): " + icon.getHeight() + " icon.getWidth(): " + icon.getWidth() + " imgWidth: " + imgWidth
                         );
-                        icon = Bitmap.createBitmap(icon, leftRightPadding, 0, icon.getHeight(), icon.getHeight());
+//                        icon = Bitmap.createBitmap(icon, leftRightPadding, 0, icon.getHeight(), icon.getHeight());
                         icon = Bitmap.createScaledBitmap(icon, imgWidth, imgWidth, false);
-                        icon = ExifUtil.rotateBitmap(centerBackgroundImageFile.getPath(), icon);
+//                        icon = ExifUtil.rotateBitmap(centerBackgroundImageFile.getPath(), icon);
                         canvas.drawBitmap(EMDrawingUtils.getCircleBitmap( icon ), startX, startY, paint);
 
                         imgSetAlready = true;

@@ -3,22 +3,13 @@
     android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <ImageView
-        android:layout_width="35dp"
-        android:layout_height="35dp"
-        android:background="@drawable/circle_view"
-        android:layout_margin="10dp"
-        android:id="@+id/inGameIndicator"
-        android:contentDescription="In a game" />
-
     <com.envative.uno.widgets.RoundedImageView
-        android:layout_width="35dp"
-        android:layout_height="35dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:id="@+id/ivUserProfileImage"
-        android:layout_alignTop="@+id/inGameIndicator"
-        android:layout_toEndOf="@+id/inGameIndicator"
         android:src="@drawable/profile_img"
-        android:scaleType="center" />
+        android:scaleType="center"
+        android:layout_margin="10dp" />
 
     <TextView
         android:layout_width="match_parent"
@@ -31,6 +22,7 @@
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         android:layout_centerVertical="true"
+        android:textSize="20sp"
         android:layout_toEndOf="@+id/ivUserProfileImage" />
 
     <CheckBox

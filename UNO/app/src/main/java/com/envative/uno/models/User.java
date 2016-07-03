@@ -42,15 +42,26 @@ public class User {
         // image filename will always be coming from server :. must convert to current filename
 
         // if the path value was not set yet
-        if(this.profileImgPath != null){
-            if(!this.profileImgPath.equals("")){
-                Log.d("handleSaveProfileImage", "all set");
+        if(this.profileImgPath != null && !this.profileImgPath.equals("")){
+            Log.d("handleSaveProfileImage", "Already Saved");
+            File profileImgFile = new File(profileImgPath);
+            if(profileImgFile.exists()){
+                callback.callback(null);
+                return;
+            }else{
+                // doesnt exist
+                UNOUtil.get(context).saveImage(context, this.profileImgUrl, new Callback() {
+                    @Override
+                    public void callback(Object object) {
+                        User.this.profileImgPath = (String)object;
+                        callback.callback(null);
+                    }
+                });
                 return;
             }
         }
 
         if(!this.profileImgUrl.equals("")){
-
             String profileImgFilePath = UNOUtil.get(context).baseImageDirectory + this.profileImgUrl.replace("/media/users/", "");
             File profileImgFile = new File(profileImgFilePath);
             Log.d("handleSaveProfileImage", profileImgFile.getPath());
@@ -60,7 +71,7 @@ public class User {
                 UNOUtil.get(context).saveImage(context, this.profileImgUrl, new Callback() {
                     @Override
                     public void callback(Object object) {
-                        profileImgPath = (String)object;
+                        User.this.profileImgPath = (String)object;
                         callback.callback(null);
                     }
                 });
@@ -72,7 +83,6 @@ public class User {
                 callback.callback(null);
             }
         }else{
-
             callback.callback(null);
         }
     }

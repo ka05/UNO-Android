@@ -5,13 +5,18 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.afollestad.assent.Assent;
+import com.afollestad.assent.AssentCallback;
+import com.afollestad.assent.PermissionResultSet;
 import com.envative.emoba.activities.EMActivityWithIndicator;
 import com.envative.emoba.fragments.ActivityIndicatorFragment;
 import com.envative.emoba.widgets.EMModal;
@@ -35,6 +40,7 @@ public class LoginActivity extends EMActivityWithIndicator {
 
         SocketService.get(this, true);// initialize socket service
         showLogin();
+        requestPermissions();
     }
 
     private void initComponents() {
@@ -53,7 +59,7 @@ public class LoginActivity extends EMActivityWithIndicator {
             if(pressedBackOnce){
                 this.moveTaskToBack(true);
             }else{
-                Toast.makeText(this, "Press back again to exit", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Press again to exit", Toast.LENGTH_SHORT).show();
                 pressedBackOnce = true;
             }
         }
@@ -100,5 +106,22 @@ public class LoginActivity extends EMActivityWithIndicator {
     public void showLogin() {
         pressedBackOnce = false;
         requestFragmentChange(new LoginFragment(), "login");
+    }
+
+    public void requestPermissions(){
+        Assent.setActivity(this, this);
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
+            // Marshmallow+
+            if (!Assent.isPermissionGranted(Assent.WRITE_EXTERNAL_STORAGE)) {
+                // The if statement checks if the permission has already been granted before
+                Assent.requestPermissions(new AssentCallback() {
+                    @Override
+                    public void onPermissionResult(PermissionResultSet result) {
+                        // Permission granted or denied
+                        Log.d("requestPermissions","granted");
+                    }
+                }, 69, Assent.WRITE_EXTERNAL_STORAGE);
+            }
+        }
     }
 }

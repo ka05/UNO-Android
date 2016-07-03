@@ -125,8 +125,6 @@ public class GameFragment extends EMBaseFragment implements View.OnClickListener
         String profileImgPath = UNOAppState.currUser.profileImgPath;
         if(!profileImgPath.equals("")){
             ivCurrPlayer.setImageBitmap(BitmapFactory.decodeFile(profileImgPath));
-        }else{
-
         }
 
         getActivity().getFragmentManager().beginTransaction().replace(R.id.chatFragmentContainer, chatFragment).commit();

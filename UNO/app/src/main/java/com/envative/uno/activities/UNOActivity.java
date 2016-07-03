@@ -96,7 +96,6 @@ public class UNOActivity extends EMNavigationDrawerActivity {
         }
     }
 
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -140,6 +139,7 @@ public class UNOActivity extends EMNavigationDrawerActivity {
             case R.id.nav_logout:
                 SocketService.get(this).destroySocketConnection();
                 UNOUtil.get(this).setLoggedOut();
+                SocketService.get(this).logout();
                 startActivity(new Intent(UNOActivity.this, LoginActivity.class));
 
                 break;
@@ -202,45 +202,11 @@ public class UNOActivity extends EMNavigationDrawerActivity {
     }
 
     /*
-    NOTES:
-
-    Activities
-    -LoginActivity ( Login / Signup )
-    -UNOActivity ( contains fragments for everything post login )
-
-    Fragments
-    -Chat Fragment ( re-use in game and lobby )
-    -Challenges List Fragment
-    -Send Challenge Fragment
-
-    Comms
-    -AppState
-    -Util
-    -SocketService
-
-
     Using Socket IO
     http://socket.io/blog/native-socket-io-and-android/
 
-    NEEDED SCREENS
-
-    Login Screen
-    Signup Screen
-    Lobby ( chat, sent challenges, received challenges, send challenge )
-    Pregame Lobby ( waiting for players to join )
-    Game Screen
-
-    TODO: Create the following views
-
-    Help
-
-
-
     TO LOG OUT OF FABRIC
-
     CTRL + L (not CMD + L)
-
-
 
      */
 

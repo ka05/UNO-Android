@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
@@ -19,6 +20,8 @@ import android.widget.ImageView;
  * Created by clay on 6/16/16.
  */
 public class RoundedImageView extends ImageView {
+
+    private int color = Color.BLACK;
 
     public RoundedImageView(Context context) {
         super(context);
@@ -63,8 +66,19 @@ public class RoundedImageView extends ImageView {
 
         int w = getWidth(), h = getHeight();
 
-        Bitmap roundBitmap =  getCroppedBitmap(bitmap, w);
+        //TODO: add circle border around with option to change color
+        Bitmap roundBitmap = getCroppedBitmap(bitmap, w);
+
         canvas.drawBitmap(roundBitmap, 0,0, null);
+        RectF innerRect = new RectF();
+        innerRect.set(4,4,getWidth()-4, getHeight()-4);
+        Paint paint = new Paint();
+        paint.setColor(color);
+        paint.setAntiAlias(true);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(8);
+
+        canvas.drawArc(innerRect, 0, 360, false, paint);
     }
 
     public static Bitmap getCroppedBitmap(Bitmap bmp, int radius) {
@@ -93,5 +107,13 @@ public class RoundedImageView extends ImageView {
 
 
         return output;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 }

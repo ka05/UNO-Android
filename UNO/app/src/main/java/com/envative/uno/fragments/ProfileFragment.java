@@ -49,8 +49,6 @@ public class ProfileFragment extends EMBaseFragment {
         findViews(v);
 
         ((UNOActivity)getActivity()).setProfileFragment(this);
-
-        initPercentView();
         popFields();
 
         EasyImage.configuration(getActivity())
@@ -106,16 +104,27 @@ public class ProfileFragment extends EMBaseFragment {
     private void initPercentView(){
         userPercentView.reset();
 
-
         //if there is a profile photo already saved
-        String profilePhotoPath = UNOAppState.currUser.profileImgPath;
+        final String profilePhotoPath = UNOAppState.currUser.profileImgPath;
         Log.d("profilePhotoPath", profilePhotoPath + ":");
 
         // if its not the default image
         if(!profilePhotoPath.equals("")){
-            userPercentView.setCenterBackgroundImageFile(new File(profilePhotoPath));
-            userPercentView.requestLayout();
-            btnRetakePhotoContainer.setVisibility(View.VISIBLE);
+            // if it doenst exist save it
+            if(!new File(profilePhotoPath).exists()){
+                UNOUtil.get(context).saveImage(context, profilePhotoPath, new Callback() {
+                    @Override
+                    public void callback(Object object) {
+                        userPercentView.setCenterBackgroundImageFile(new File(profilePhotoPath));
+                        userPercentView.requestLayout();
+                        btnRetakePhotoContainer.setVisibility(View.VISIBLE);
+                    }
+                });
+            }else{
+                userPercentView.setCenterBackgroundImageFile(new File(profilePhotoPath));
+                userPercentView.requestLayout();
+                btnRetakePhotoContainer.setVisibility(View.VISIBLE);
+            }
         }
         // no profile image taken yet. set listener
         else{
@@ -163,10 +172,11 @@ public class ProfileFragment extends EMBaseFragment {
                 Assent.requestPermissions(new AssentCallback() {
                     @Override
                     public void onPermissionResult(PermissionResultSet result) {
-                        // Permission granted or denied
-
+                        // Permission granted
+                        if(result.allPermissionsGranted()){
+                            EasyImage.openCamera(getActivity(), 0);
+                        }
                         // http://stackoverflow.com/questions/21872789/how-to-take-pic-with-camera-and-save-it-to-database-and-show-in-listview-in-andr
-                        EasyImage.openCamera(getActivity(), 0);
                     }
                 }, 69, Assent.CAMERA);
             }else{
@@ -178,34 +188,46 @@ public class ProfileFragment extends EMBaseFragment {
     }
 
     public void handleImageUpload(String path){
+        // TODO: check that image is actually being uploaded and overridden on server
         SocketService.get(getActivity()).uploadProfileImg(path);
     }
 
-    public void onPhotoReturned(File photoFile) {
-        //TODO: upload image to server so it can be used in game for players
+    public void onPhotoReturned(final File photoFile) {
         Log.d("PATH::::", photoFile.getPath());
-        handleImageUpload(photoFile.getPath());
-
-        userPercentView.setCenterBackgroundImageFile(photoFile);
-        userPercentView.requestLayout();
-
-        String newFilename = UNOAppState.currUser.username + "_profile_img";
-
-        UNOUtil.get(getActivity()).saveImage(getActivity(), photoFile.getPath(), newFilename, true, new Callback() {
+        UNOUtil.get(getActivity()).processImage(photoFile, new Callback(){
             @Override
             public void callback(Object object) {
-                String savedFilePath = (String)object;
+                boolean processed = (boolean)object;
+                if(processed){
+                    handleImageUpload(photoFile.getPath());
+                    String newFilename = UNOAppState.currUser.username + "_profile_img";
 
-                if(savedFilePath.equals("error")){
-                    Toast.makeText(getActivity(), "Unable to save Image.", Toast.LENGTH_LONG).show();
+                    UNOUtil.get(getActivity()).saveImage(getActivity(), photoFile.getPath(), newFilename, true, new Callback() {
+                        @Override
+                        public void callback(Object object) {
+                            String savedFilePath = (String)object;
+
+                            if(savedFilePath.equals("error")){
+                                Toast.makeText(getActivity(), "Unable to save Image.", Toast.LENGTH_LONG).show();
+                            }else{
+                                Log.d("path saved as:", savedFilePath);
+                                UNOAppState.currUser.profileImgPath = savedFilePath;
+                                UNOUtil.get(getActivity()).saveUser();
+                                Log.d("currUser.profileImg:", UNOAppState.currUser.profileImgPath);
+
+                                // update percent view with new background image
+                                userPercentView.setCenterBackgroundImageFile(new File(UNOAppState.currUser.profileImgPath));
+                                userPercentView.requestLayout();
+                            }
+                        }
+                    });
                 }else{
-                    Log.d("path saved as:", savedFilePath);
-                    UNOAppState.currUser.profileImgPath = savedFilePath;
-                    UNOUtil.get(getActivity()).saveUser();
-                    Log.d("currUser.profileImg:", UNOAppState.currUser.profileImgPath);
+                    Log.d("onPhotoReturned", "image processing error");
                 }
             }
         });
     }
+
+
 
 }

@@ -9,6 +9,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.envative.emoba.delegates.Callback;
 import com.envative.uno.activities.LoginActivity;
 import com.envative.uno.activities.UNOActivity;
 import com.envative.uno.fragments.ChallengeFragment;
@@ -113,7 +114,9 @@ public class SocketService {
     }
 
     private void reinitializeSocketConnection() {
+        loginSocket.disconnect();
         loginSocket = null;
+        gameSocket.disconnect();
         gameSocket = null;
         initSocketConnection();
     }
@@ -150,6 +153,7 @@ public class SocketService {
             // Lobby Calls
             loginSocket.on("handleChallenge", onHandleChallenge);
             loginSocket.on("notifyNeedsToUpdateChallenges", onNotifyNeedsToUpdateChallenges);
+            loginSocket.on("notifyNeedsToUpdateOnlineUsers", onNotifyNeedsToUpdateOnlineUsers);
             loginSocket.on("getOnlineUsers", onGetOnlineUsers);
             loginSocket.on("getSentChallenges", onGetSentChallenges);
             loginSocket.on("getChallenges", onGetChallenges);
@@ -201,6 +205,7 @@ public class SocketService {
         // Lobby Calls
         loginSocket.off("handleChallenge", onHandleChallenge);
         loginSocket.off("notifyNeedsToUpdateChallenges", onNotifyNeedsToUpdateChallenges);
+        loginSocket.off("notifyNeedsToUpdateOnlineUsers", onNotifyNeedsToUpdateOnlineUsers);
         loginSocket.off("getOnlineUsers", onGetOnlineUsers);
         loginSocket.off("getSentChallenges", onGetSentChallenges);
         loginSocket.off("getChallenges", onGetChallenges);
@@ -230,6 +235,11 @@ public class SocketService {
     public void attemptLogin(JsonObject credentials){
         Log.d(TAG, "attemptLogin called");
         loginSocket.emit("validateLogin", credentials);
+    }
+
+    public void logout(){
+        Log.d(TAG, "logout called");
+        loginSocket.emit("logout");
     }
 
     public void uploadProfileImg(String path){
@@ -287,9 +297,7 @@ public class SocketService {
                     boolean success = data.get("valid").getAsBoolean();
                     if(success){
                         UNOAppState.currUser = new User(data.get("user").getAsJsonObject(), context);
-
                         UNOUtil.get(context).setLoggedIn();
-                        Toast.makeText(context, "Login success", Toast.LENGTH_LONG).show();
                     }
                     if(loginFromSignupPage){
                         ((SignupFragment)signupDelegate).loginCallback.callback(success);
@@ -432,7 +440,6 @@ public class SocketService {
                     JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
                     String success = data.get("msg").getAsString();
                     if(success.equals("success")){
-//                        getCurrChallengeInterval?.invalidate()
                         // show pregame lobby and poll for challenge to make sure everyone has joined and that nobody cancelled
                         UNOAppState.currUserIsChallenger = true;
 
@@ -542,9 +549,6 @@ public class SocketService {
                         for(int i = 0, j = tempGame.players.size(); i<j; i++){
                             // if player is not inGame
                             if( !tempGame.players.get(i).inGame ){
-//                                getCurrGameInterval?.invalidate() // clear get game interval
-//                                getCurrGameChatInterval?.invalidate() // clear get game chat interval
-
                                 allPlayersInGame = false; // for local logic
                                 UNOAppState.inGameOrGameLobby = false;
                                 Toast.makeText(context, tempGame.players.get(i).username + " has left the game so the game must end!", Toast.LENGTH_LONG).show();
@@ -717,6 +721,25 @@ public class SocketService {
         }
     };
 
+    private Emitter.Listener onNotifyNeedsToUpdateOnlineUsers = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            ((Activity)context).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "onNotifyNeedsToUpdateOnlineUsers : args: " + args[0]);
+                    JsonObject data = (new JsonParser()).parse(((JSONObject)args[0]).toString()).getAsJsonObject();
+                    String msg = data.get("msg").getAsString();
+                    if(msg.equals("true")){
+                        getOnlineUsers();
+                    }else{
+                        Log.d(TAG, "ERROR: onNotifyNeedsToUpdateOnlineUsers error!");
+                    }
+                }
+            });
+        }
+    };
+
 
 
     public void handleValidateMove(String svgName){
@@ -813,13 +836,23 @@ public class SocketService {
                         if(data.get("data").getAsJsonArray().size() != UNOAppState.activeUsers.size()){
                             UNOAppState.activeUsers.clear();
 
-                            for(JsonElement user : data.get("data").getAsJsonArray()) {
-                                if(!user.getAsJsonObject().get("username").getAsString().equals(UNOAppState.currUser.username)){
-                                    UNOAppState.activeUsers.add(new User( user.getAsJsonObject(), context ));
+                            for(JsonElement userObj : data.get("data").getAsJsonArray()) {
+                                if(!userObj.getAsJsonObject().get("username").getAsString().equals(UNOAppState.currUser.username)){
+
+                                    final User user = new User( userObj.getAsJsonObject(), context );
+                                    user.handleSaveProfileImage(context, new Callback() {
+                                        @Override
+                                        public void callback(Object object) {
+
+                                            Log.d("handleSaveProfileImage", "callback res: " + object);
+                                            UNOAppState.activeUsers.add(user);
+                                        }
+                                    });
+
                                 }
                             }
+                            if(challengeModalDelegate != null) ((ChallengeModalFragment)challengeModalDelegate).getAdapter().notifyDataSetChanged();
                         }
-                        ((ChallengeModalFragment)challengeModalDelegate).getAdapter().notifyDataSetChanged();
                     }else{
                         Log.d(TAG, "ERROR: onGetOnlineUsers error!");
                     }
